@@ -1,0 +1,72 @@
+/* --- Reset & Globals --- */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Inter",sans-serif;color:#fff;background:#000;overflow-x:hidden}
+
+/* Background Layers */
+body::after{content:"";position:fixed;inset:0;background:url('/assets/bg.png') center/cover no-repeat;opacity:0;animation:bgReveal 1.6s ease-out .3s forwards;z-index:-2;pointer-events:none}
+body::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;animation:overlayReveal 1.6s ease-out .3s forwards;z-index:-1;pointer-events:none}
+@keyframes bgReveal{to{opacity:1}}
+@keyframes overlayReveal{to{opacity:1}}
+
+/* Hero */
+header.hero{position:relative;width:100%;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:heroSlideUp 1.6s ease-out .3s forwards;padding-bottom:1rem;z-index:10}
+@keyframes heroSlideUp{to{height:160px}}
+.hero h1{font-size:clamp(2rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.hero p{margin-top:1rem;font-size:1.1rem;font-weight:400;opacity:.85}
+
+/* Navbar */
+nav.site-nav{
+  width:33%;
+  margin:0 auto;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);
+  border-radius:9999px;
+  position:sticky;
+  top:0;            /* Stick to top when scrolled */
+  z-index:9;
+  opacity:0;
+  animation:navFadeIn .4s ease-out 1.9s forwards;
+}
+@keyframes navFadeIn{to{opacity:1}}
+/* Opaque when stuck */
+nav.site-nav.stuck{background:rgba(0,0,0,1);}
+nav.site-nav ul{display:flex;justify-content:space-evenly;gap:1.5rem;list-style:none;padding:.75rem 1rem}
+nav.site-nav a{color:#fff;text-decoration:none;font-weight:500;transition:transform .15s ease,opacity .15s ease;transform:scale(1)}
+nav.site-nav a:hover,
+nav.site-nav a.active{transform:scale(1.5);opacity:.8}
+
+/* Distillery Logo & Divider */
+.dist-logo{display:none;width:330px;max-width:80%;margin:1.5rem auto 0;filter:invert(1) brightness(1.6);opacity:0;transition:opacity .3s ease}
+.dist-logo.show{display:block;opacity:1}
+.logo-divider{display:none;width:160px;height:2px;background:rgba(255,255,255,.8);margin:0.75rem auto 0}
+.logo-divider.show{display:block}
+
+/* Content Sections */
+main{opacity:0;animation:contentFade .8s ease-out 2s forwards;padding:2rem 8%}
+@keyframes contentFade{to{opacity:1}}
+.content-section{display:none;max-width:900px;margin:0 auto;padding:2rem 0;line-height:1.6}
+.content-section.active{display:block}
+h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
+
+/* Category Heading */
+.cat-title{font-size:1.35rem;font-weight:600;margin:3rem 0 1rem;text-align:center;text-transform:uppercase;letter-spacing:.05em}
+
+/* Cocktail Grid */
+.cocktail-grid{display:grid;gap:2rem;margin-top:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.cocktail-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:1.25rem;text-align:center;backdrop-filter:blur(4px);transition:transform .2s ease;cursor:pointer}
+.cocktail-card:hover{transform:translateY(-4px)}
+.cocktail-card img{width:64px;height:64px;object-fit:contain;filter:grayscale(100%);margin-bottom:.75rem}
+.cocktail-card h3{font-size:1.25rem;font-weight:600;margin:0 0 .5rem}
+.cocktail-card .ingredients{font-size:.8rem;opacity:.85;margin-bottom:.75rem}
+.cocktail-card .method{font-size:.8rem;opacity:.7;font-style:italic}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s ease;z-index:20}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:2rem;max-width:500px;width:90%;backdrop-filter:blur(6px);animation:modalIn .25s ease forwards;text-align:center}
+@keyframes modalIn{from{transform:scale(.9)}to{transform:scale(1)}}
+.modal img{width:80px;height:80px;object-fit:contain;filter:grayscale(100%);margin-bottom:1rem}
+.modal h3{font-size:1.5rem;font-weight:600;margin-bottom:1rem}
+.modal ul{list-style:none;line-height:1.6;font-size:.95rem;margin-bottom:1rem;text-align:left;padding:0}
+.modal .close-btn{display:block;margin:1rem auto 0;padding:.4rem 1.2rem;border:1px solid rgba(255,255,255,.2);border-radius:9999px;background:transparent;color:#fff;font-size:.85rem;cursor:pointer;transition:opacity .2s ease}
+.modal .close-btn:hover{opacity:.75}
