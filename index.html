@@ -24,8 +24,21 @@
     .hero p{margin-top:1rem;font-size:1.1rem;font-weight:400;opacity:.85}
 
     /* Navbar */
-    nav.site-nav{width:33%;margin:0 auto;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);border-radius:9999px;position:sticky;top:160px;z-index:9;opacity:0;animation:navFadeIn .4s ease-out 1.9s forwards}
+    nav.site-nav{
+      width:33%;
+      margin:0 auto;
+      background:rgba(0,0,0,.6);
+      backdrop-filter:blur(4px);
+      border-radius:9999px;
+      position:sticky;
+      top:0;            /* Stick to top when scrolled */
+      z-index:9;
+      opacity:0;
+      animation:navFadeIn .4s ease-out 1.9s forwards;
+    }
     @keyframes navFadeIn{to{opacity:1}}
+    /* Opaque when stuck */
+    nav.site-nav.stuck{background:rgba(0,0,0,1);}
     nav.site-nav ul{display:flex;justify-content:space-evenly;gap:1.5rem;list-style:none;padding:.75rem 1rem}
     nav.site-nav a{color:#fff;text-decoration:none;font-weight:500;transition:transform .15s ease,opacity .15s ease;transform:scale(1)}
     nav.site-nav a:hover,nav.site-nav a.active{transform:scale(1.18);opacity:.9}
