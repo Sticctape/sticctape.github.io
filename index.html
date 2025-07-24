@@ -60,7 +60,7 @@
 
     /* Cocktail Grid */
     .cocktail-grid{display:grid;gap:2rem;margin-top:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-    .cocktail-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:1.25rem;text-align:center;backdrop-filter:blur(4px);transition:transform .2s ease;cursor:pointer}
+    .cocktail-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:1rem;padding:1.25rem;text-align:center;backdrop-filter:blur(4px);transition:transform .2s ease;cursor:pointer}
     .cocktail-card:hover{transform:translateY(-4px)}
     .cocktail-card img{width:64px;height:64px;object-fit:contain;filter:grayscale(100%);margin-bottom:.75rem}
     .cocktail-card h3{font-size:1.25rem;font-weight:600;margin:0 0 .5rem}
@@ -166,7 +166,8 @@ Charge with 2 N2O chargers and refrigerate until needed." data-img="Assets/Cockt
 0.5 oz Pallini Raspberry Liqueur
 2 dashes Peach Bitters
 1 Whole Egg" data-instructions="Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass.
-Garnish with 3 fresh raspberries." data-img="Assets/CocktailArt/Redzone.png">
+Garnish with 3 fresh raspberries." 
+data-img="Assets/CocktailArt/Redzone.png">
           <h3>Redzone Flip</h3>
           <p class="ingredients">Bourbon | Raspberry | Whole Egg | Peach Bitters</p>
           <p class="method">Shaken • Coupe</p>
@@ -176,13 +177,25 @@ Garnish with 3 fresh raspberries." data-img="Assets/CocktailArt/Redzone.png">
       <!-- Category: Banana Bliss -->
       <h3 class="cat-title">Banana Bliss</h3>
       <div class="cocktail-grid">
-        <article class="cocktail-card" data-name="Banana Daiquiri" data-full="2 oz Rum
-1 oz Banana Liqueur
-0.75 oz Lime Juice" data-instructions="Shake with ice, strain into coupe. Garnish with banana chip." data-img="Assets/glasses/coupe.svg">
-          <img src="Assets/glasses/coupe.svg" alt="Coupe" />
-          <h3>Banana Daiquiri</h3>
-          <p class="ingredients">Rum | Banana | Lime</p>
-          <p class="method">Shaken • Up</p>
+        <article class="cocktail-card" data-name="Wedding Old Fashioned" data-full="2 oz Elijah Craig Bourbon
+0.66 oz Giffard Banane du Bresil Banana Liqueur
+4 Dashes Chocolate Bitters" data-instructions="Stir all ingredients with ice, strain into a rocks glass. Garnish with banana chip." 
+data-img="Assets/CocktailArt/Wedding.png">
+          <h3>Wedding Old Fashioned</h3>
+          <p class="ingredients">Bourbon | Banana | Chocolate Bitters</p>
+          <p class="method">Stirred • Rocks</p>
+        </article>
+
+        <article class="cocktail-card" data-name="Midnight Banana Flip" data-full="1.5 oz Appleton Estate Jamaican Rum
+0.75 oz Giffard Banane du Bresil Banana Liqueur
+0.5 oz Tempus Fugit Dark Creme de Cacao
+1 tsp Demerara Syrup
+1 Whole Egg
+Grated Nutmeg" data-instructions="Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass. Grate Nutmeg on top." 
+data-img="Assets/CocktailArt/bananaflip.png">
+          <h3>Midnight Banana Flip</h3>
+          <p class="ingredients">Rum | Banana | Cacao | Demerara Syrup | Whole Egg | Nutmeg</p>
+          <p class="method">Shaken • Coupe</p>
         </article>
       </div>
 
@@ -193,7 +206,6 @@ Garnish with 3 fresh raspberries." data-img="Assets/CocktailArt/Redzone.png">
 0.75 oz Lemon
 0.5 oz Lavender Syrup
 Top Soda" data-instructions="Shake first three, strain into Collins, top with soda." data-img="Assets/glasses/collins.svg">
-          <img src="Assets/glasses/collins.svg" alt="Collins" />
           <h3>Lavender Collins</h3>
           <p class="ingredients">Gin | Lavender | Lemon</p>
           <p class="method">Shaken • Collins</p>
@@ -206,7 +218,6 @@ Top Soda" data-instructions="Shake first three, strain into Collins, top with so
         <article class="cocktail-card" data-name="Old Fashioned" data-full="2 oz Bourbon
 0.25 oz Demerara
 2 dashes Angostura" data-instructions="Stir with ice, strain over large rock, orange twist." data-img="Assets/glasses/rocks.svg">
-          <img src="Assets/glasses/rocks.svg" alt="Rocks" />
           <h3>Old Fashioned</h3>
           <p class="ingredients">Bourbon | Demerara | Bitters</p>
           <p class="method">Stirred • Rocks</p>
