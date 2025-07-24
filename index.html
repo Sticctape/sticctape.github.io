@@ -19,24 +19,52 @@
     body {
       font-family: "Inter", sans-serif;
       color: #ffffff;
-      background-color: #000000; /* Start solid black */
+      background-color: #000000; /* Fallback */
       overflow-x: hidden;
-
-      /* Fade the background in after delay */
-      animation: bgFade 1.2s ease-out forwards 1.2s;
     }
 
-    @keyframes bgFade {
-      to {
-        background-color: #111111; /* Slightly lighter, adjust to preference */
-      }
+    /* --------------------------------------------------
+       Background Layers
+       -------------------------------------------------- */
+    /* 1) Image */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url('Assets/bg.png') center / cover no-repeat;
+      opacity: 0;                             /* Start invisible */
+      animation: bgReveal 1.6s ease-out forwards 0.3s; /* Fade‑in */
+      z-index: -2;                            /* Furthest back */
+      pointer-events: none;
     }
 
-    /* --- Hero / Banner --- */
+    /* 2) Dark overlay (for readability) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);         /* 50% black tint */
+      opacity: 0;                             /* Fade in alongside image */
+      animation: overlayReveal 1.6s ease-out forwards 0.3s;
+      z-index: -1;                            /* Above image, below content */
+      pointer-events: none;
+    }
+
+    @keyframes bgReveal {
+      to { opacity: 1; }
+    }
+
+    @keyframes overlayReveal {
+      to { opacity: 1; }
+    }
+
+    /* --------------------------------------------------
+       Hero / Banner
+       -------------------------------------------------- */
     header.hero {
       position: relative;
       width: 100%;
-      height: 100vh; /* Full viewport height on load */
+      height: 100vh; /* Full viewport on load */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -44,15 +72,11 @@
       background: transparent;
       z-index: 10;
 
-      /* Slide‑up/shrink animation */
-      animation: heroSlideUp 1s ease-out forwards 1.2s; /* delay matches bgFade start */
+      animation: heroSlideUp 1.6s ease-out forwards 0.3s; /* Smooth slide */
     }
 
-    /* From full height to banner height */
     @keyframes heroSlideUp {
-      to {
-        height: 120px; /* Final banner height at top */
-      }
+      to { height: 120px; }
     }
 
     .hero h1 {
@@ -66,20 +90,20 @@
       margin-top: 1rem;
       font-size: 1.1rem;
       font-weight: 400;
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
-    /* --- Main Content --- */
+    /* --------------------------------------------------
+       Main Content
+       -------------------------------------------------- */
     main {
-      opacity: 0; /* Hidden during initial animations */
-      animation: contentFade 0.8s ease-out forwards 2.4s; /* Wait until heroSlideUp finishes */
+      opacity: 0;
+      animation: contentFade 0.8s ease-out forwards 2s; /* (0.3 + 1.6) */
       padding: 2rem 8%;
     }
 
     @keyframes contentFade {
-      to {
-        opacity: 1;
-      }
+      to { opacity: 1; }
     }
 
     section {
@@ -89,9 +113,7 @@
       line-height: 1.6;
     }
 
-    section + section {
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
+    section + section { border-top: 1px solid rgba(255, 255, 255, 0.1); }
 
     h2 {
       font-size: 1.75rem;
@@ -103,8 +125,8 @@
 <body>
   <!-- HERO / BANNER -->
   <header class="hero">
-    <h1>Welcome to My Site</h1>
-    <p>A modern GitHub Pages landing experience</p>
+    <h1>Cody Streeter</h1>
+    <p>Everything I need, and nothing more</p>
   </header>
 
   <!-- MAIN CONTENT -->
