@@ -1,16 +1,15 @@
 /* ------------------------------------------------------------------
-   site.js – shell logic for the hybrid SPA
+   site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
+
 document.addEventListener('DOMContentLoaded', () => {
-  /* --------- refs --------- */
   const navBar   = document.querySelector('nav.site-nav');
   const navLinks = navBar.querySelectorAll('a');
   const content  = document.getElementById('content');
   const logo     = document.getElementById('distLogo');
   const divider  = document.getElementById('logoDivider');
 
-  /* --------- fetch + inject partial --------- */
   async function loadPage(id) {
     try {
       const resp = await fetch(`pages/${id}.html`);
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* --------- nav handling --------- */
   function activateSection(id) {
     navLinks.forEach(l => l.classList.toggle('active', l.dataset.section === id));
     const show = id === 'cocktails';
@@ -34,21 +32,27 @@ document.addEventListener('DOMContentLoaded', () => {
   navLinks.forEach(link =>
     link.addEventListener('click', e => {
       e.preventDefault();
-      activateSection(link.dataset.section);
-      history.pushState({}, '', `#${link.dataset.section}`);
+      const section = link.dataset.section;
+      activateSection(section);
+      window.location.hash = section;
     })
   );
 
-  /* --------- sticky bar logic (only this one) --------- */
+  window.addEventListener('hashchange', () => {
+    const id = window.location.hash.replace('#', '') || 'about';
+    activateSection(id);
+  });
+
   function updateSticky() {
     const stuck = navBar.getBoundingClientRect().top <= 0;
     navBar.classList.toggle('stuck', stuck);
+    document.getElementById('siteHeroSmall')
+        .classList.toggle('show', stuck);
   }
   window.addEventListener('scroll',  updateSticky, { passive:true });
   window.addEventListener('resize',  updateSticky);
-  updateSticky();                               // run once on load
+  updateSticky();
 
-  /* --------- modal logic for cocktails page --------- */
   function initCocktailModals() {
     const cards    = document.querySelectorAll('.cocktail-card');
     const overlay  = document.getElementById('modalOverlay');
@@ -60,15 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach(card =>
       card.addEventListener('click', () => {
-        mImg.src            = card.dataset.img;
-        mTitle.textContent  = card.dataset.name;
-        mIng.innerHTML      = card.dataset.full
-                                .split('\n')
-                                .map(t => `<li>${t.trim()}</li>`)
-                                .join('');
+        mImg.src           = card.dataset.img;
+        mTitle.textContent = card.dataset.name;
+        mIng.innerHTML     = card.dataset.full
+                              .split('\n')
+                              .map(t => `<li>${t.trim()}</li>`)
+                              .join('');
         mInstr.innerHTML   = card.dataset.instructions
-            .replace(/\\n/g, '<br>')      // “\n” sequences
-            .replace(/(?:\r\n|\r|\n)/g, '<br>'); // real linefeeds
+                                .replace(/\\n/g, '<br>')
+                                .replace(/(?:\r\n|\r|\n)/g, '<br>');
         overlay.classList.add('active');
       })
     );
@@ -77,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.onclick  = e => { if (e.target === overlay) overlay.classList.remove('active'); };
   }
 
-  /* --------- initial load (deep-link aware) --------- */
-  const first = location.hash.replace('#', '') || 'about';
+  // 🔰 Initial load based on hash (deep linking)
+  const first = window.location.hash.replace('#', '') || 'about';
   activateSection(first);
 });
