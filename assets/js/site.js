@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .split('\n')
                                 .map(t => `<li>${t.trim()}</li>`)
                                 .join('');
-        mInstr.textContent  = card.dataset.instructions;
+        mInstr.innerHTML   = card.dataset.instructions
+            .replace(/\\n/g, '<br>')      // “\n” sequences
+            .replace(/(?:\r\n|\r|\n)/g, '<br>'); // real linefeeds
         overlay.classList.add('active');
       })
     );
