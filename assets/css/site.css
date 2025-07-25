@@ -77,7 +77,7 @@ nav.site-nav a.active{
 
 
 /* Distillery Logo & Divider */
-.dist-logo{display:none;width:330px;max-width:80%;margin:1.5rem auto 0;filter:invert(1) brightness(1.6);opacity:0;transition:opacity .3s ease}
+.dist-logo{display:none;width:330px;max-width:80%;margin:1.5rem auto 0;opacity:0;transition:opacity .3s ease}
 .dist-logo.show{display:block;opacity:1}
 .logo-divider{display:none;width:160px;height:2px;background:rgba(255,255,255,.8);margin:0.75rem auto 0}
 .logo-divider.show{display:block}
