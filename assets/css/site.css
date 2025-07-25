@@ -14,26 +14,67 @@ header.hero{position:relative;width:100%;height:100vh;display:flex;flex-directio
 .hero h1{font-size:clamp(2rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
 .hero p{margin-top:1rem;font-size:1.1rem;font-weight:400;opacity:.85}
 
-/* Navbar */
 nav.site-nav{
-  width:33%;
-  margin:0 auto;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(4px);
-  border-radius:9999px;
+  /* layout */
   position:sticky;
-  top:0;            /* Stick to top when scrolled */
+  top:0;                 /* sticks at the top */
   z-index:9;
+  display:flex;
+  justify-content:center;
+
+  /* fade-in at page start */
   opacity:0;
   animation:navFadeIn .4s ease-out 1.9s forwards;
 }
+
+/* ----- expanding black bar lives in ::before ----- */
+nav.site-nav::before{
+  content:"";
+  position:absolute;
+  inset:0;               /* fill the nav */
+  width:33vw;            /* pill width at rest  ≈ one-third of screen */
+  margin:0 auto;         /* keep it centred */
+  background:rgba(40,40,40,.50);
+  backdrop-filter:blur(4px);
+  border-radius:9999px;
+  transition:width .35s ease, border-radius .35s ease,
+             background .35s ease;
+}
+
+nav.site-nav.stuck::before{
+  width:100vw;           /* grow to full width */
+  background:rgba(40,40,40,1);
+  border-radius:0;
+}
+
+/* ----- the UL never changes size ----- */
 @keyframes navFadeIn{to{opacity:1}}
-/* Opaque when stuck */
-nav.site-nav.stuck{background:rgba(0,0,0,1);}
-nav.site-nav ul{display:flex;justify-content:space-evenly;gap:1.5rem;list-style:none;padding:.75rem 1rem}
-nav.site-nav a{color:#fff;text-decoration:none;font-weight:500;transition:transform .15s ease,opacity .15s ease;transform:scale(1)}
+nav.site-nav ul{
+  list-style:none;
+  display:flex;
+  gap:1.5rem;
+  padding:.75rem 1rem;
+  width:33vw;            /* fixed viewport-based width */
+  max-width:500px;       /* optional hard cap for XL screens */
+  justify-content:space-evenly;
+  margin:0 auto;         /* centred inside the bar */
+  position:relative;     /* keep it above ::before */
+  z-index:1;             /* pointer events stay on links */
+}
+
+nav.site-nav a{
+  color:#fff;
+  text-decoration:none;
+  font-weight:500;
+  transform:scale(1);
+  transition:transform .15s ease,opacity .15s ease;
+}
 nav.site-nav a:hover,
-nav.site-nav a.active{transform:scale(1.5);opacity:.8}
+nav.site-nav a.active{
+  transform:scale(1.5);
+  opacity:.8;
+}
+
 
 /* Distillery Logo & Divider */
 .dist-logo{display:none;width:330px;max-width:80%;margin:1.5rem auto 0;filter:invert(1) brightness(1.6);opacity:0;transition:opacity .3s ease}

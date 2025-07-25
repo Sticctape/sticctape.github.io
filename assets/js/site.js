@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* --------- refs --------- */
   const navBar   = document.querySelector('nav.site-nav');
   const navLinks = navBar.querySelectorAll('a');
-  const content  = document.getElementById('content');      // <main id="content">
+  const content  = document.getElementById('content');
   const logo     = document.getElementById('distLogo');
   const divider  = document.getElementById('logoDivider');
 
@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const resp = await fetch(`pages/${id}.html`);
       if (!resp.ok) throw new Error(`404 for ${id}.html`);
       content.innerHTML = await resp.text();
-
-      // run section-specific init if needed
       if (id === 'cocktails') initCocktailModals();
     } catch (err) {
       content.innerHTML = `<p style="color:#f55">Failed to load page: ${err}</p>`;
@@ -37,14 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', e => {
       e.preventDefault();
       activateSection(link.dataset.section);
-      history.pushState({}, '', `#${link.dataset.section}`);   // update address bar
+      history.pushState({}, '', `#${link.dataset.section}`);
     })
   );
 
-  /* --------- sticky opacity --------- */
-  window.addEventListener('scroll', () =>
-    navBar.classList.toggle('stuck', window.scrollY > 0)
-  );
+  /* --------- sticky bar logic (only this one) --------- */
+  function updateSticky() {
+    const stuck = navBar.getBoundingClientRect().top <= 0;
+    navBar.classList.toggle('stuck', stuck);
+  }
+  window.addEventListener('scroll',  updateSticky, { passive:true });
+  window.addEventListener('resize',  updateSticky);
+  updateSticky();                               // run once on load
 
   /* --------- modal logic for cocktails page --------- */
   function initCocktailModals() {
@@ -58,13 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach(card =>
       card.addEventListener('click', () => {
-        mImg.src         = card.dataset.img;
-        mTitle.textContent = card.dataset.name;
-        mIng.innerHTML     = card.dataset.full
-                               .split('\n')
-                               .map(t => `<li>${t.trim()}</li>`)
-                               .join('');
-        mInstr.textContent = card.dataset.instructions;
+        mImg.src            = card.dataset.img;
+        mTitle.textContent  = card.dataset.name;
+        mIng.innerHTML      = card.dataset.full
+                                .split('\n')
+                                .map(t => `<li>${t.trim()}</li>`)
+                                .join('');
+        mInstr.textContent  = card.dataset.instructions;
         overlay.classList.add('active');
       })
     );
