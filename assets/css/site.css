@@ -3,7 +3,7 @@
 body{font-family:"Inter",sans-serif;color:#fff;background:#000;overflow-x:hidden}
 
 /* Background Layers */
-body::after{content:"";position:fixed;inset:0;background:url('/assets/bg.png') center/cover no-repeat;opacity:0;animation:bgReveal 1.6s ease-out .3s forwards;z-index:-2;pointer-events:none}
+body::after{content:"";position:fixed;inset:0;background:url('assets/bg.png') center/cover no-repeat;opacity:0;animation:bgReveal 1.6s ease-out .3s forwards;z-index:-2;pointer-events:none}
 body::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;animation:overlayReveal 1.6s ease-out .3s forwards;z-index:-1;pointer-events:none}
 @keyframes bgReveal{to{opacity:1}}
 @keyframes overlayReveal{to{opacity:1}}
