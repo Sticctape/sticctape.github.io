@@ -85,3 +85,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const first = window.location.hash.replace('#', '') || 'about';
   activateSection(first);
 });
+
+    const nav      = document.querySelector('.site-nav');
+    const toggle   = document.querySelector('.nav-toggle');
+    const sent  = document.getElementById('nav-sentinel');
+
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+  document.body.classList.toggle('menu-open', isOpen);
+  });
+
+  const obs = new IntersectionObserver(
+    ([entry]) => nav.classList.toggle('stuck', !entry.isIntersecting),
+    {
+      rootMargin: `-${nav.offsetHeight}px 0px 0px 0px`
+      // once the top of the page has scrolled navHeight past the viewport,
+      // entry.isIntersecting becomes false ➜ we add .stuck
+    }
+  );
+  obs.observe(sent);
+
+  /* close drawer when any link is tapped */
+document.querySelectorAll('nav.site-nav ul a')
+        .forEach(a=>a.addEventListener('click', ()=>{
+          nav.classList.remove('open');
+          document.body.classList.remove('menu-open');
+        }));

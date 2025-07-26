@@ -18,10 +18,14 @@
     </header>
 
   <!-- NAVBAR -->
+<div id="nav-sentinel" style="height:1px;"></div>
   <nav class="site-nav">
     <div class="nav-left-hero">
         <img id="siteHeroSmall" src="assets/thestreeters.png" alt="The Streeters small">
     </div>
+    <button class="nav-toggle" aria-expanded="false" aria-label="Menu">
+        <span class="burger"></span>
+    </button>
     <ul>
       <li><a href="about"     data-section="about"     class="active">About</a></li>
       <li><a href="features"  data-section="features">Features</a></li>
@@ -40,14 +44,22 @@
   <!-- MODAL (global, reused by Cocktails) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <img id="modalImg" alt="">
-      <h3 id="modalTitle"></h3>
-      <ul id="modalIngredients"></ul>
-      <div class="divider"></div>
-      <p id="modalInstructions"></p>
-      <div class="divider"></div>
-      <button class="close-btn" id="closeBtn">Close</button>
-    </div>
+        <!-- header stays fixed -->
+        <img id="modalImg" alt="">
+        <h3 id="modalTitle"></h3>
+
+        <!-- ▼▼ new scrollable section ▼▼ -->
+            <div class="modal-body">
+                <ul id="modalIngredients"></ul>
+                <div class="divider"></div>
+                <p id="modalInstructions"></p>
+                <div class="divider"></div>
+            </div>
+        <!-- ▲▲ scrolls ▲▲ -->
+
+        <!-- footer stays fixed -->
+  <button class="close-btn" id="closeBtn">Close</button>
+</div>
   </div>
 
   <script src="assets/js/site.js"></script>
