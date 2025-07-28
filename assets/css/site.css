@@ -39,10 +39,15 @@ header.hero{
 @keyframes heroSlideUp{to{height:150px}}
 #siteHeroBig{max-width:260px;margin-bottom:1rem}
 #distLogo.dist-logo{
-  width:330px!important;
-  max-width:80%!important;
+  display: block;
+  width:330px;
+  max-width:80%;
   height:auto;
-  display:block;margin:1.5rem auto 0!important;
+  display:block;margin:1.5rem auto 0;
+}
+#distLogo:not(.show),
+#logoDivider:not(.show){
+  display:none;
 }
 
 /* ─────────────────────────  NAVBAR  ────────────────────────────── */
