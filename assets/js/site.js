@@ -2,7 +2,7 @@
    site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
-// STATIC PASSWORD - Set your password here (not visible in HTML)
+// STATIC PASSWORD - If you found this, I don't care
 const MEMBER_PASSWORD = 'iLoveCocktails';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll',  updateSticky, { passive:true });
   window.addEventListener('resize',  updateSticky);
   updateSticky();
+  // cache for full recipes loaded from assets/data/recipes.json
+  let recipesCache = null;
+  let categoriesCache = null;
 
   function initCocktailModals() {
     const cards    = document.querySelectorAll('.cocktail-card');
@@ -64,29 +67,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const mInstr   = document.getElementById('modalInstructions');
     const closeBtn = document.getElementById('closeBtn');
 
+    // helper to load recipes.json once
+    async function loadRecipes() {
+      if (recipesCache) return recipesCache;
+      try {
+        const resp = await fetch('assets/data/recipes.json');
+        if (!resp.ok) throw new Error('Failed to load recipes.json');
+        const data = await resp.json();
+        // support new structure: { categories: {...}, recipes: { ... } }
+        if (data && data.recipes) {
+          recipesCache = data.recipes;
+          categoriesCache = data.categories || {};
+        } else {
+          // fallback to old flat map
+          recipesCache = data || {};
+          categoriesCache = {};
+        }
+        return recipesCache;
+      } catch (err) {
+        console.warn('Could not load recipes.json:', err);
+        recipesCache = {};
+        categoriesCache = {};
+        return recipesCache;
+      }
+    }
+
+    // populate visible cards with JSON data (name, short ingredients, taste, image)
+    loadRecipes().then(recipes => {
+      cards.forEach(card => {
+        const id = card.dataset.id;
+        const r = id && recipes && recipes[id] ? recipes[id] : null;
+        if (!r) return;
+        const titleEl = card.querySelector('h3');
+        if (titleEl) titleEl.textContent = r.name;
+        const ingEl = card.querySelector('.ingredients');
+        if (ingEl) ingEl.textContent = r.ingredients;
+        const tasteEl = card.querySelector('.taste');
+        if (tasteEl) tasteEl.textContent = r.taste;
+        // keep dataset in sync for any code that still reads it
+        card.dataset.img = r.img;
+        card.dataset.name = r.name;
+      });
+    });
+
     cards.forEach(card =>
-      card.addEventListener('click', () => {
+      card.addEventListener('click', async () => {
         const isMember = localStorage.getItem('isMember') === 'true';
-        
-        mImg.src           = card.dataset.img;
-        mTitle.textContent = card.dataset.name;
-        
-        // Use full recipe with measurements if logged in, otherwise use clean version
-        const ingredientData = isMember ? card.dataset.full : card.dataset.clean;
-        mIng.innerHTML     = ingredientData
-                              .split('\n')
-                              .map(t => `<li>${t.trim()}</li>`)
-                              .join('');
-        
-        // Show full instructions if logged in, otherwise prompt to login
+
+        // Load recipe data from recipes.json (ingredients + instructions)
+        const recipes = await loadRecipes();
+        const id = card.dataset.id;
+        const recipe = (id && recipes && recipes[id]) ? recipes[id] : null;
+
+        // Modal title & image come from JSON when available
+        mImg.src = (recipe && recipe.img) || card.dataset.img || '';
+        mTitle.textContent = (recipe && recipe.name) || card.dataset.name || '';
+
+        // Ingredients: members see `full`, non-members see `clean` (fallback to dataset)
+        const ingredientData = isMember
+                              ? (recipe && recipe.full) || card.dataset.clean || ''
+                              : (recipe && recipe.clean) || card.dataset.clean || '';
+        mIng.innerHTML = ingredientData
+                            .split('\n')
+                            .map(t => `<li>${t.trim()}</li>`)
+                            .join('');
+
+        // Instructions: members see the recipe.instructions from JSON; non-members get a login prompt
         if (isMember) {
-          mInstr.innerHTML   = card.dataset.instructions
-                                  .replace(/\\n/g, '<br>')
-                                  .replace(/(?:\r\n|\r|\n)/g, '<br>');
+          const instr = (recipe && recipe.instructions) || '';
+          mInstr.innerHTML = instr
+                                .replace(/(?:\r\n|\r|\n)/g, '<br>');
         } else {
           mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Login to view detailed measurements and instructions.</p>';
         }
-        
+
         overlay.classList.add('active');
       })
     );

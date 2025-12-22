@@ -1,0 +1,210 @@
+{
+  "categories": {
+    "special-creations": "Special Creations",
+    "banana-bliss": "Banana Bliss",
+    "ashleys-blends": "Ashley's Blends",
+    "the-essentials": "The Essentials"
+  },
+  "recipes": {
+    "campfire-in-georgia": {
+      "category": "special-creations",
+      "name": "Campfire in Georgia",
+      "img": "assets/glasses/campfire.png",
+      "ingredients": "Mezcal | Peach Habenero Puree | Orange Juice | Bitters | Smoked",
+      "taste": "Smoky • Spicy",
+      "full": "2 oz Del Maguey Vida Mezcal\n0.5 oz Campfire Shrub (Peach & Habanero Puree)\n0.5 oz Orange Juice\n2 dashes Angostura Bitters",
+      "clean": "Del Maguey Vida Mezcal\nCampfire Shrub (Peach & Habanero Puree)\nOrange Juice\nAngostora Bitters",
+      "instructions": "Shake with ice and strain into a double rocks glass filled with one large ice cube.\nSet the cocktail on a small heatproof serving platter and place the Cinnamon French Oak alongside the glass.\nLight the oak with a butane torch.\n\nCampfire Shrub:\n5 pounds fresh peaches, pitted and coarsely chopped (if peaches are not in season, you can use frozen)\n8 cups granulated white sugar\n5 1/4 cups apple cider vinegar\n2 habanero peppers, chopped \n12 cinnamon sticks\n\nAdd the peaches, sugar,4 cups of the vinegar, the peppers and the cinnamon sticks to a large saucepan over medium heat. Stir occasionally until all the sugar has dissolved.\nLower the heat and let simmer for 1 hour. Remove from the heat and let cool. Use a fine mesh strainer to remove and discard the solids. Add the remaining 1 1/4 cups of vinegar and stir.\nPour into a bottle, and store at room temperature until needed."
+    },
+    "the-canon": {
+      "category": "special-creations",
+      "name": "The Canon",
+      "img": "assets/glasses/canon.png",
+      "ingredients": "Rye | Amaro | Angostaga | Orange Lemon Foam",
+      "taste": "Bitter • Citrusy",
+      "full": "2 oz Old Overholt Rye Whiskey\n1 oz Sweet Vermouth\n0.5 oz Amaro Ramazzotti\n4 drops Angostura Bitters\nFloat Canon Foam",
+      "clean": "Old Overholt Rye Whiskey\nSweet Vermouth\nAmaro Ramazzotti\nAngostora Bitters\nCanon Foam",
+      "instructions": "Stir with ice and strain into a double rocks glass filled with one large ice cube.\nTop with Canon Foam. Drop Bitters, or use a spray bottle to apply.\n\nCanon Foam:\n2 sheet's bloomed gelatin 3 ounces hot water\n6 ounces Combier triple sec\n3 ounces fresh lemon juice\n3 large egg whites\n\nPlace the bloomed gelatin in the hot water in an iSi Easy Whip canister and stir until the gelatin has melted. Let sit for a couple of minutes, then stir in the triple sec, lemon juice, and egg whites.\nCharge with 2 N2O chargers and refrigerate until needed."
+    },
+    "london-fog": {
+      "category": "special-creations",
+      "name": "London Fog",
+      "img": "assets/glasses/londonfog.png",
+      "ingredients": "Amaro | Gin | Lemon | Earl Grey Syrup | Egg",
+      "taste": "Herbal • Creamy",
+      "full": "1 oz Amaro Nonino\n0.75 oz Citadelle Gin\n0.75 oz Lemon Juice\n0.75 oz Earl Grey Syrup\n0.25 oz Italicus\n0.25 oz Benedictine\n0.5 oz Egg White",
+      "clean": "Amaro Nonino\nCitadelle Gin\nLemon Juice\nEarl Grey Syrup\nItalicus\nBenedictine\nEgg White",
+      "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass.\n\nEarl Grey Syrup:\n4 oz water\n1 Earl Grey Tea Bag\n\nHeat 4 oz of water to a simmer, add the tea bag and steep for 8 minutes. Remove the tea bag, squeeze tea bag, and strain liquid into pot. Add equal sugar by weight for a 1:1 ratio, stirring until dissolved.\nLet cool before using."
+    },
+    "redzone-flip": {
+      "category": "special-creations",
+      "name": "Redzone Flip",
+      "img": "assets/glasses/redzone.png",
+      "ingredients": "Bourbon | Raspberry | Whole Egg | Peach Bitters",
+      "taste": "Fruity • Sweet",
+      "full": "1.5 oz Builliet Bourbon Whiskey\n1 oz Raspberry Syrup\n0.5 oz Pallini Raspberry Liqueur\n2 dashes Peach Bitters\n1 Whole Egg",
+      "clean": "Builliet Bourbon Whiskey\nRaspberry Syrup\nPallini Raspberry Liqueur\nPeach Bitters\nWhole Egg",
+      "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass.\nGarnish with 3 fresh skewered raspberries."
+    },
+    "knuckles-milk-punch": {
+      "category": "special-creations",
+      "name": "Knuckles Milk Punch",
+      "img": "assets/glasses/milkpunch.png",
+      "ingredients": "Bourbon | Cacao | Cream | Cognac | Honey | Nutmeg",
+      "taste": "Sweet • Creamy",
+      "full": "2 oz Breakfast Cream\n1 oz Eastern Kille Cognac Finished Bourbon\n1 oz Pierre Ferrand 1840 Cognac\n0.25 oz Honey Syrup\nGrated Nutmeg",
+      "clean": "Breakfast Cream\nEastern Kille Cognac Finished Bourbon\nPierre Ferrand 1840 Cognac\nHoney Syrup\nNutmeg",
+      "instructions": "Shake with ice and strain into a rocks glass filled with ice cubes. Grate Nutmeg on top.\n\nBreakfast Cream:\n14 ounces heavy cream\n¼ cup Tempus Fugit crème de\ncacao\n2 tablespoons vanilla extract\n\nAdd the cream, crème de cacao, and vanilla extract to a squeeze bottle.\nShake vigorously for at least 3 minutes. Alternatively, you can use an immersion blender, being careful not to whip too long.\nThe mixture should be the consistency of heavy wet cream that can float on liquids. Do not let the cream stiffen too much."
+    },
+    "late-night-in-oaxaca": {
+      "category": "special-creations",
+      "name": "Late Night in Oaxaca",
+      "img": "assets/glasses/lateoaxaca.png",
+      "ingredients": "Mezcal | Tequila | Coffee Liqueur | Sugar | Bitters",
+      "taste": "Smoky • Bitter",
+      "full": "1.5 oz Vida Del Maguey Mezcal\n0.5 oz Adictivo Repasado Tequila\n0.5 oz Mr. Black Coffee Liqueur\n0.25 oz Simple Syrup\n2 dashes Orange Bitters\n2 dashes Angostora Bitters",
+      "clean": "Vida Del Maguey Mezcal\nAdictivo Repasado Tequila\nMr. Black Coffee Liqueur\nSimple Syrup\nOrange Bitters\nAngostora Bitters",
+      "instructions": "Stir all ingredients with ice, strain into a rocks glass with one large ice cube.\nOptionally garnish with an orange twist."
+    },
+    "wedding-old-fashioned": {
+      "category": "banana-bliss",
+      "name": "Wedding Old Fashioned",
+      "img": "assets/glasses/wedding.png",
+      "ingredients": "Bourbon | Banana | Chocolate Bitters",
+      "taste": "Strong • Sweet",
+      "full": "2 oz Elijah Craig Bourbon\n0.66 oz Giffard Banane du Bresil Banana Liqueur\n4 Dashes Chocolate Bitters",
+      "clean": "Elijah Craig Bourbon\nGiffard Banane du Bresil Banana Liqueur\nChocolate Bitters",
+      "instructions": "Stir all ingredients with ice, strain into a rocks glass. Garnish with banana chip."
+    },
+    "midnight-banana-flip": {
+      "category": "banana-bliss",
+      "name": "Midnight Banana Flip",
+      "img": "assets/glasses/bananaflip.png",
+      "ingredients": "Rum | Banana | Cacao | Demerara Syrup | Whole Egg | Nutmeg",
+      "taste": "Creamy • Sweet",
+      "full": "1.5 oz Appleton Estate Jamaican Rum\n0.75 oz Giffard Banane du Bresil Banana Liqueur\n0.5 oz Tempus Fugit Dark Creme de Cacao\n1 tsp Demerara Syrup\n1 Whole Egg\nGrated Nutmeg",
+      "clean": "Appleton Estate Jamaican Rum\nGiffard Banane du Bresil Banana Liqueur\nTempus Fugit Dark Creme de Cacao\nDemerara Syrup\nWhole Egg\nNutmeg",
+      "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass. Grate Nutmeg on top."
+    },
+    "banana-stand": {
+      "category": "banana-bliss",
+      "name": "Banana Stand",
+      "img": "assets/glasses/bananastand.png",
+      "ingredients": "Rye | Banana | Cognac | Honey | Bitters | Smoked",
+      "taste": "Strong • Sweet",
+      "full": "1 oz Rittenhouse Rye Whiskey\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Giffard Banane du Bresil Banana Liqueur\n0.75 oz Honey Syrup\n2 dashes Angostora Bitters",
+      "clean": "Rittenhouse Rye Whiskey\nPierre Ferrand 1840 Cognac\nGiffard Banane du Bresil Banana Liqueur\nHoney Syrup\nAngostora Bitters",
+      "instructions": "Stir all ingredients with ice, strain into a Bordeaux glass filled with a single large ice cube. Smoke with oak chips."
+    },
+    "bananarac": {
+      "category": "banana-bliss",
+      "name": "Bananarac",
+      "img": "assets/glasses/bananarac.png",
+      "ingredients": "Absinthe | Banana | Cognac | Rye | Demerara Syrup | Bitters",
+      "taste": "Strong • Bitter",
+      "full": "Rinse/Spritz Long Road Distrillery Absinth\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Old Overholt Rye Whiskey\n0.5 oz Giffard Banane du Bresil Banana Liqueur\n1 tsp Demerara Syrup\n1 Dash Peychaud's Bitters",
+      "clean": "Long Road Distrillery Absinth\nPierre Ferrand 1840 Cognac\nOld Overholt Rye Whiskey\nGiffard Banane du Bresil Banana Liqueur\nDemerara Syrup\nPeychaud's Bitters",
+      "instructions": "Rinse a chilled rocks glass with Absinthe, or alternatively use an atomizer to spray 2 spritzes of Absinth. Stir all ingredients with ice, strain into the rocks glass witrh no ice.\nOptionally express a Lemon peel over the drink, use as garnish."
+    },
+    "ashleys-ideal-daiduri": {
+      "category": "ashleys-blends",
+      "name": "Ashley's Ideal Daiduri",
+      "img": "assets/glasses/idealdaiquri.png",
+      "ingredients": "Rum | Raspberry | Lemon",
+      "taste": "Tart • Sweet",
+      "full": "1.5 oz Plataray 3 Star Dark Rum\n1.25 oz Raspberry Syrup\n1 oz Lime Juice",
+      "clean": "Plataray 3 Star Dark Rum\nRaspberry Syrup\nLime Juice",
+      "instructions": "Shake with ice and strain into a coupe glass. Garnish with 1 Raspberry"
+    },
+    "the-rumantic": {
+      "category": "ashleys-blends",
+      "name": "The RUMantic",
+      "img": "assets/glasses/rumantic.png",
+      "ingredients": "Rum | Pineapple | Velvelt Falernum | Lime | Simple | Bitters",
+      "taste": "Tart • Strong",
+      "full": "1 oz Plantaray 3 Star Light Rum\n1 oz Plantaray Pineapple Rum\n1 oz Lime Juice\n0.5 oz Velvet Falernum\n0.5 oz Simple Syrup\n10 Dashes Angostura Bitters\n10 Dashes Dark Overproof Rum, eg. Dr Bird",
+      "clean": "Plantaray 3 Star Light Rum\nPlantaray Pineapple Rum\nLime Juice\nVelvet Falernum\nSimple Syrup\nAngostora Bitters\nDark Overproof Rum",
+      "instructions": "Shake with ice and strain into a coupe."
+    },
+    "good-4-u": {
+      "category": "ashleys-blends",
+      "name": "Good 4 U",
+      "img": "assets/glasses/good4u.png",
+      "ingredients": "Bourbon | Amaretto | Lemon | Egg",
+      "taste": "Tart • Creamy",
+      "full": "1.5 oz Woodford Reserve Bourbon\n1 oz Disaronno Amaretto\n1 oz Lemon Juice\n0.5 oz Egg White",
+      "clean": "Woodford Reserve Bourbon\nDisaronno Amaretto\nLemon Juice\nEgg White",
+      "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled rocks glass with one large ice cube.\nTop with a Lemon twist around a cherry on a skewer."
+    },
+    "pink-pony-club": {
+      "category": "ashleys-blends",
+      "name": "Pink Pony Club",
+      "img": "assets/glasses/ppclub.png",
+      "ingredients": "Gin | Raspberry | Egg | Lemon",
+      "taste": "Tart • Creamy",
+      "full": "1.5 oz Aviation Gin\n0.5 oz Raspberry Syrup\n0.5 oz Lemon Juice\n0.5 oz Egg White",
+      "clean": "Aviation Gin\nRaspberry Syrup\nLemon Juice\nEgg White",
+      "instructions": "Also known as a Clover Club.\n\nAdd all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Strain into a coupe or martini glass.\nGarnish with 2 fresh skewered raspberries."
+    },
+    "amelia": {
+      "category": "ashleys-blends",
+      "name": "Amelia",
+      "img": "assets/glasses/amelia.png",
+      "ingredients": "Vodka | Elderflower | Blackberry | Lemon",
+      "taste": "Tart • Floral",
+      "full": "1.5 oz Smirnoff Vodka\n1 oz St. Germain Elderflower Liqueur\n0.75 oz Blackberry Puree\n0.75 oz Lemon Juice",
+      "clean": "Smirnoff Vodka\nSt. Germain Elderflower Liqueur\nBlackberry Puree\nLemon Juice",
+      "instructions": "Shake with ice and strain into a Nick & Nora glass. Optionally garnish with a Mint sprig."
+    },
+    "amaretto-sour": {
+      "category": "ashleys-blends",
+      "name": "Amaretto Sour",
+      "img": "assets/glasses/amarettosour.png",
+      "ingredients": "Amaretto | Bourbon | Lemon | Egg",
+      "taste": "Tart • Sweet",
+      "full": "1.5 oz Disaronno Ammaretto\n1 oz Woodford Reserve Bourbon\n1 oz Lemon Juice\n0.5 oz Egg White",
+      "clean": "Disaronno Ammaretto\nWoodford Reserve Bourbon\nLemon Juice\nEgg White",
+      "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled rocks glass with one large ice cube.\nGarnish with a Lemon peel and a cherry."
+    },
+    "corpse-reviver-2": {
+      "category": "the-essentials",
+      "name": "Corpse Reviver #2",
+      "img": "assets/glasses/corpse.png",
+      "ingredients": "Gin | Lillet Blanc | Cointreau | Lemon | Absinthe",
+      "taste": "Herbal • Tart",
+      "full": "0.75 oz New Holland Garnish\n0.75 oz Lillet Blanc\n0.75 oz Cointreau\n0.75 oz Lemon Juice\n1 Dash Absinthe",
+      "clean": "New Holland Garnish\nLillet Blanc\nCointreau\nLemon Juice\nAbsinthe",
+      "instructions": "Shake with ice and strain into a Nick & Nora glass. Optionally garnish with a lemon twist."
+    },
+    "corn-and-oil": {
+      "category": "the-essentials",
+      "name": "Corn and Oil",
+      "img": "assets/glasses/cornoil.png",
+      "ingredients": "Rum | Velvet Falernum | Lime | Bitters",
+      "taste": "Bitter • Tart",
+      "full": "2 oz Doorlys 12 year Rum\n0.5 oz Falernum\n0.33 oz Lime Juice\n4 Dashes Angostura Bitters",
+      "clean": "Doorlys 12 year Rum\nFalernum\nLime Juice\nAngostora Bitters",
+      "instructions": "Stir all ingredients with ice, strain into a rocks glass filled with crushed ice. Optionally garnish with a lime wheel."
+    },
+    "final-ward": {
+      "category": "the-essentials",
+      "name": "Final Ward",
+      "img": "assets/glasses/finalward.png",
+      "ingredients": "Rye | Chartruse | Cherry | Lemon",
+      "taste": "Herbal • Tart",
+      "full": "0.75 oz Rittenhouse Rye Whiskey\n0.75 oz Green Chartreuse\n0.75 oz Maraschino Liqueur\n0.75 oz Lemon Juice",
+      "clean": "Rittenhouse Rye Whiskey\nGreen Chartreuse\nMaraschino Liqueur\nLemon Juice",
+      "instructions": "Shake with ice and strain into a chilled coupe glass."
+    },
+    "painkiller": {
+      "category": "the-essentials",
+      "name": "Painkiller",
+      "img": "assets/glasses/painkiller.png",
+      "ingredients": "Rum | Pineapple | Orange | Coconut | Lime | Nutmeg",
+      "taste": "Sweet • Tropical",
+      "full": "1.5 oz Plataray O.F.T.D Overproof Rum\n0.5 oz Smith & Cross Jamaican Rum\n4 oz Pineapple Juice\n0.75 oz Orange Juice\n1 oz Coconut Cream\n0.25 oz Lime Juice",
+      "clean": "Plataray O.F.T.D Overproof Rum\nSmith & Cross Jamaican Rum\nPineapple Juice\nOrange Juice\nCoconut Cream\nLime Juice",
+      "instructions": "Shake all ingredients with ice and strain into a tall glass filled with crushed ice.\nGarnish with freshly grated nutmeg. Optionally add an orange wedge or pineapple frond."
+    }
+  }
+}
