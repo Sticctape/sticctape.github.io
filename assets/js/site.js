@@ -2,6 +2,8 @@
    site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
+// STATIC PASSWORD - Set your password here (not visible in HTML)
+const MEMBER_PASSWORD = 'iLoveCocktails';
 
 document.addEventListener('DOMContentLoaded', () => {
   const navBar   = document.querySelector('nav.site-nav');
@@ -64,15 +66,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach(card =>
       card.addEventListener('click', () => {
+        const isMember = localStorage.getItem('isMember') === 'true';
+        
         mImg.src           = card.dataset.img;
         mTitle.textContent = card.dataset.name;
-        mIng.innerHTML     = card.dataset.full
+        
+        // Use full recipe with measurements if logged in, otherwise use clean version
+        const ingredientData = isMember ? card.dataset.full : card.dataset.clean;
+        mIng.innerHTML     = ingredientData
                               .split('\n')
                               .map(t => `<li>${t.trim()}</li>`)
                               .join('');
-        mInstr.innerHTML   = card.dataset.instructions
-                                .replace(/\\n/g, '<br>')
-                                .replace(/(?:\r\n|\r|\n)/g, '<br>');
+        
+        // Show full instructions if logged in, otherwise prompt to login
+        if (isMember) {
+          mInstr.innerHTML   = card.dataset.instructions
+                                  .replace(/\\n/g, '<br>')
+                                  .replace(/(?:\r\n|\r|\n)/g, '<br>');
+        } else {
+          mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Login to view detailed measurements and instructions.</p>';
+        }
+        
         overlay.classList.add('active');
       })
     );
@@ -112,3 +126,70 @@ document.querySelectorAll('nav.site-nav ul a')
           nav.classList.remove('open');
           document.body.classList.remove('menu-open');
         }));
+
+  // LOGIN / LOGOUT HANDLERS
+  const loginBtn = document.getElementById('navLoginBtn');
+  const logoutBtn = document.getElementById('navLogoutBtn');
+  const loginForm = document.getElementById('loginForm');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const loginCloseBtn = document.getElementById('loginCloseBtn');
+  const loginError = document.getElementById('loginError');
+  const loginPassword = document.getElementById('loginPassword');
+
+  // Show login modal when clicking login button
+  loginBtn.addEventListener('click', () => {
+    loginOverlay.classList.add('active');
+    loginPassword.focus();
+  });
+
+  // Close login modal
+  loginCloseBtn.addEventListener('click', () => {
+    loginOverlay.classList.remove('active');
+    loginForm.reset();
+    loginError.classList.add('is-hidden');
+  });
+
+  // Close on overlay click
+  loginOverlay.addEventListener('click', e => {
+    if (e.target === loginOverlay) {
+      loginOverlay.classList.remove('active');
+      loginForm.reset();
+      loginError.classList.add('is-hidden');
+    }
+  });
+
+  // Handle login form submission
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const password = loginPassword.value;
+
+    if (password === MEMBER_PASSWORD) {
+      // Login successful
+      loginError.classList.add('is-hidden');
+      localStorage.setItem('isMember', 'true');
+      updateLoginUI();
+      loginOverlay.classList.remove('active');
+      loginForm.reset();
+    } else {
+      // Login failed
+      loginError.textContent = 'Incorrect password';
+      loginError.classList.remove('is-hidden');
+    }
+  });
+
+  // Update UI based on login status
+  function updateLoginUI() {
+    const isMember = localStorage.getItem('isMember') === 'true';
+    loginBtn.classList.toggle('is-hidden', isMember);
+    logoutBtn.classList.toggle('is-hidden', !isMember);
+    document.body.classList.toggle('is-member', isMember);
+  }
+
+  // Logout handler
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('isMember');
+    updateLoginUI();
+  });
+
+  // Check login status on page load
+  updateLoginUI();

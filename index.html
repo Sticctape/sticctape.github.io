@@ -31,6 +31,10 @@
       <li><a href="features"  data-section="features">Features</a></li>
       <li><a href="cocktails" data-section="cocktails">Cocktails</a></li>
       <li><a href="contact"   data-section="contact">Contact</a></li>
+      <li class="nav-auth">
+        <button id="navLoginBtn" class="nav-login-btn" type="button">Login</button>
+        <button id="navLogoutBtn" class="nav-login-btn is-hidden" type="button">Logout</button>
+      </li>
     </ul>
   </nav>
 
@@ -41,7 +45,7 @@
   <!-- MAIN: partial pages load here -->
   <main id="content"></main>
 
-  <!-- MODAL (global, reused by Cocktails) -->
+  <!-- Cocktail MODAL -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
         <!-- header stays fixed -->
@@ -59,9 +63,28 @@
 
         <!-- footer stays fixed -->
   <button class="close-btn" id="closeBtn">Close</button>
-</div>
   </div>
+</div>
 
+  <!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginOverlay">
+  <div class="modal">
+    <h3 style="margin-top:0;">Member Login</h3>
+
+    <form id="loginForm">
+      <label style="display:block; margin:12px 0 6px;">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required style="width:100%;">
+
+      <p id="loginError" class="is-hidden" style="margin:10px 0 0; color:#f55;"></p>
+
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button type="submit" class="close-btn" style="flex:1;">Log in</button>
+        <button type="button" class="close-btn" id="loginCloseBtn" style="flex:1;">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/site.js"></script>
 </body>
 </html>

@@ -88,7 +88,7 @@ nav.site-nav.stuck #siteHeroSmall{opacity:1;transform:none;}
 
 nav.site-nav ul{
   grid-column:2;
-  list-style:none;display:flex;gap:1.5rem;justify-content:center;
+  list-style:none;display:flex;gap:1.5rem;justify-content:center;align-items:center;
   padding:.75rem 1rem;width:33vw;max-width:500px;margin:0;z-index:1;
 }
 nav.site-nav a{
@@ -108,6 +108,21 @@ nav.site-nav a.active{transform:scale(1.5);opacity:.8;}
 .site-nav.open .burger{transform:rotate(45deg)}
 .site-nav.open .burger::before{opacity:0}
 .site-nav.open .burger::after{transform:translateY(0) rotate(-90deg)}
+
+.is-hidden { display:none !important; }
+
+.nav-login-btn{
+  padding:.45rem .85rem;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(0,0,0,.15);
+  color:inherit;
+  cursor:pointer;
+  font-size: inherit;
+  font-weight: 500;
+}
+.nav-login-btn:hover{ background:rgba(0,0,0,.25); }
+
 
 /* ─────────────────────────  CONTENT WRAPPERS  ──────────────────── */
 main{opacity:0;animation:contentFade .8s ease-out 2s forwards;padding:2rem 8%;}
