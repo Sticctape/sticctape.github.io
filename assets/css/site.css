@@ -294,6 +294,13 @@ h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
 .auth-banner.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);} 
 .auth-banner .icon{margin-right:.5rem}
 
+/* Prevent mobile browser auto-zoom on password input (keep font-size >= 16px) */
+#loginPassword{
+  font-size:16px;
+  line-height:1.2;
+  -webkit-text-size-adjust:100%;
+}
+
 @media (max-width:480px){
   .auth-banner{
     top:1rem;
