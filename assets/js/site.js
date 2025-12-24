@@ -226,6 +226,14 @@ document.querySelectorAll('nav.site-nav ul a')
       loginForm.reset();
       // show temporary success banner
       if (typeof showAuthBanner === 'function') showAuthBanner('Successful authentication');
+      // close mobile nav if it's open (same behavior as selecting a page)
+      try {
+        if (nav && nav.classList.contains('open')) {
+          nav.classList.remove('open');
+          document.body.classList.remove('menu-open');
+          if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
+        }
+      } catch (e) { /* silent */ }
     } else {
       // Login failed
       loginError.textContent = 'Incorrect password';
