@@ -10,7 +10,7 @@
       "category": "special-creations",
       "name": "Campfire in Georgia",
       "img": "assets/glasses/campfire.png",
-      "ingredients": "Mezcal | Peach Habenero Puree | Orange Juice | Bitters | Smoked",
+      "ingredients": "Mezcal | Peach Habanero Puree | Orange Juice | Bitters | Smoked",
       "taste": "Smoky • Spicy",
       "full": "2 oz Del Maguey Vida Mezcal\n0.5 oz Campfire Shrub (Peach & Habanero Puree)\n0.5 oz Orange Juice\n2 dashes Angostura Bitters",
       "clean": "Del Maguey Vida Mezcal\nCampfire Shrub (Peach & Habanero Puree)\nOrange Juice\nAngostura Bitters",
@@ -20,7 +20,7 @@
       "category": "special-creations",
       "name": "The Canon",
       "img": "assets/glasses/canon.png",
-      "ingredients": "Rye | Amaro | Angostaga | Orange Lemon Foam",
+      "ingredients": "Rye | Amaro | Angostura | Orange Lemon Foam",
       "taste": "Bitter • Citrusy",
       "full": "2 oz Old Overholt Rye Whiskey\n1 oz Sweet Vermouth\n0.5 oz Amaro Ramazzotti\n4 drops Angostura Bitters\nFloat Canon Foam",
       "clean": "Old Overholt Rye Whiskey\nSweet Vermouth\nAmaro Ramazzotti\nAngostura Bitters\nCanon Foam",
@@ -62,8 +62,8 @@
       "img": "assets/glasses/lateoaxaca.png",
       "ingredients": "Mezcal | Tequila | Coffee Liqueur | Sugar | Bitters",
       "taste": "Smoky • Bitter",
-      "full": "1.5 oz Vida Del Maguey Mezcal\n0.5 oz Adictivo Repasado Tequila\n0.5 oz Mr. Black Coffee Liqueur\n0.25 oz Simple Syrup\n2 dashes Orange Bitters\n2 dashes Angostura Bitters",
-      "clean": "Vida Del Maguey Mezcal\nAdictivo Repasado Tequila\nMr. Black Coffee Liqueur\nSimple Syrup\nOrange Bitters\nAngostura Bitters",
+      "full": "1.5 oz Vida Del Maguey Mezcal\n0.5 oz Adictivo Reposado Tequila\n0.5 oz Mr. Black Coffee Liqueur\n0.25 oz Simple Syrup\n2 dashes Orange Bitters\n2 dashes Angostura Bitters",
+      "clean": "Vida Del Maguey Mezcal\nAdictivo Reposado Tequila\nMr. Black Coffee Liqueur\nSimple Syrup\nOrange Bitters\nAngostura Bitters",
       "instructions": "Stir all ingredients with ice, strain into a rocks glass with one large ice cube.\nOptionally garnish with an orange twist."
     },
     "wedding-old-fashioned": {
@@ -100,16 +100,16 @@
       "category": "banana-bliss",
       "name": "Bananarac",
       "img": "assets/glasses/bananarac.png",
-      "ingredients": "Absinthe | Banana | Cognac | Rye | Demerara Syrup | Bitters",
+      "ingredients": "Absinthee | Banana | Cognac | Rye | Demerara Syrup | Bitters",
       "taste": "Strong • Bitter",
-      "full": "Rinse/Spritz Long Road Distillery Absinth\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Old Overholt Rye Whiskey\n0.5 oz Giffard Banane du Bresil Banana Liqueur\n1 tsp Demerara Syrup\n1 Dash Peychaud's Bitters",
-      "clean": "Long Road Distillery Absinth\nPierre Ferrand 1840 Cognac\nOld Overholt Rye Whiskey\nGiffard Banane du Bresil Banana Liqueur\nDemerara Syrup\nPeychaud's Bitters",
-      "instructions": "Rinse a chilled rocks glass with Absinthe, or alternatively use an atomizer to spray 2 spritzes of Absinth. Stir all ingredients with ice, strain into the rocks glass with no ice.\nOptionally express a Lemon peel over the drink, use as garnish."
+      "full": "Rinse/Spritz Long Road Distillery Absinthe\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Old Overholt Rye Whiskey\n0.5 oz Giffard Banane du Bresil Banana Liqueur\n1 tsp Demerara Syrup\n1 Dash Peychaud's Bitters",
+      "clean": "Long Road Distillery Absinthe\nPierre Ferrand 1840 Cognac\nOld Overholt Rye Whiskey\nGiffard Banane du Bresil Banana Liqueur\nDemerara Syrup\nPeychaud's Bitters",
+      "instructions": "Rinse a chilled rocks glass with Absinthee, or alternatively use an atomizer to spray 2 spritzes of Absinthe. Stir all ingredients with ice, strain into the rocks glass with no ice.\nOptionally express a Lemon peel over the drink, use as garnish."
     },
-    "ashleys-ideal-daiquri": {
+    "ashleys-ideal-daiquiri": {
       "category": "ashleys-blends",
-      "name": "Ashley's Ideal Daiquri",
-      "img": "assets/glasses/idealdaiquri.png",
+      "name": "Ashley's Ideal Daiquiri",
+      "img": "assets/glasses/idealdaiquiri.png",
       "ingredients": "Rum | Raspberry | Lemon",
       "taste": "Tart • Sweet",
       "full": "1.5 oz Plataray 3 Star Dark Rum\n1.25 oz Raspberry Syrup\n1 oz Lime Juice",
@@ -170,10 +170,10 @@
       "category": "the-essentials",
       "name": "Corpse Reviver #2",
       "img": "assets/glasses/corpse.png",
-      "ingredients": "Gin | Lillet Blanc | Cointreau | Lemon | Absinthe",
+      "ingredients": "Gin | Lillet Blanc | Cointreau | Lemon | Absinthee",
       "taste": "Herbal • Tart",
-      "full": "0.75 oz New Holland Gin\n0.75 oz Lillet Blanc\n0.75 oz Cointreau\n0.75 oz Lemon Juice\n1 Dash Absinthe",
-      "clean": "New Holland Gin\nLillet Blanc\nCointreau\nLemon Juice\nAbsinthe",
+      "full": "0.75 oz New Holland Gin\n0.75 oz Lillet Blanc\n0.75 oz Cointreau\n0.75 oz Lemon Juice\n1 Dash Absinthee",
+      "clean": "New Holland Gin\nLillet Blanc\nCointreau\nLemon Juice\nAbsinthee",
       "instructions": "Shake with ice and strain into a Nick & Nora glass. Optionally garnish with a lemon twist."
     },
     "corn-and-oil": {
@@ -190,7 +190,7 @@
       "category": "the-essentials",
       "name": "Final Ward",
       "img": "assets/glasses/finalward.png",
-      "ingredients": "Rye | Chartruse | Cherry | Lemon",
+      "ingredients": "Rye | Chartreuse | Cherry | Lemon",
       "taste": "Herbal • Tart",
       "full": "0.75 oz Rittenhouse Rye Whiskey\n0.75 oz Green Chartreuse\n0.75 oz Maraschino Liqueur\n0.75 oz Lemon Juice",
       "clean": "Rittenhouse Rye Whiskey\nGreen Chartreuse\nMaraschino Liqueur\nLemon Juice",
@@ -202,7 +202,7 @@
       "img": "assets/glasses/painkiller.png",
       "ingredients": "Rum | Pineapple | Orange | Coconut | Lime | Nutmeg",
       "taste": "Sweet • Tropical",
-      "full": "1.5 oz Plataray O.F.T.D Overproof Rum\n0.5 oz Smith & Cross Jamaican Rum\n4 oz Pineapple Juice\n0.75 oz Orange Juice\n1 oz Coconut Cream\n0.25 oz Lime Juice",
+      "full": "1.5 oz Plantaray O.F.T.D Overproof Rum\n0.5 oz Smith & Cross Jamaican Rum\n4 oz Pineapple Juice\n0.75 oz Orange Juice\n1 oz Coconut Cream\n0.25 oz Lime Juice",
       "clean": "Plataray O.F.T.D Overproof Rum\nSmith & Cross Jamaican Rum\nPineapple Juice\nOrange Juice\nCoconut Cream\nLime Juice",
       "instructions": "Shake all ingredients with ice and strain into a tall glass filled with crushed ice.\nGarnish with freshly grated nutmeg. Optionally add an orange wedge or pineapple frond."
     }
