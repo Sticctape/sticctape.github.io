@@ -13,7 +13,7 @@
       "ingredients": "Mezcal | Peach Habenero Puree | Orange Juice | Bitters | Smoked",
       "taste": "Smoky • Spicy",
       "full": "2 oz Del Maguey Vida Mezcal\n0.5 oz Campfire Shrub (Peach & Habanero Puree)\n0.5 oz Orange Juice\n2 dashes Angostura Bitters",
-      "clean": "Del Maguey Vida Mezcal\nCampfire Shrub (Peach & Habanero Puree)\nOrange Juice\nAngostora Bitters",
+      "clean": "Del Maguey Vida Mezcal\nCampfire Shrub (Peach & Habanero Puree)\nOrange Juice\nAngostura Bitters",
       "instructions": "Shake with ice and strain into a double rocks glass filled with one large ice cube.\nSet the cocktail on a small heatproof serving platter and place the Cinnamon French Oak alongside the glass.\nLight the oak with a butane torch.\n\nCampfire Shrub:\n5 pounds fresh peaches, pitted and coarsely chopped (if peaches are not in season, you can use frozen)\n8 cups granulated white sugar\n5 1/4 cups apple cider vinegar\n2 habanero peppers, chopped \n12 cinnamon sticks\n\nAdd the peaches, sugar,4 cups of the vinegar, the peppers and the cinnamon sticks to a large saucepan over medium heat. Stir occasionally until all the sugar has dissolved.\nLower the heat and let simmer for 1 hour. Remove from the heat and let cool. Use a fine mesh strainer to remove and discard the solids. Add the remaining 1 1/4 cups of vinegar and stir.\nPour into a bottle, and store at room temperature until needed."
     },
     "the-canon": {
@@ -23,8 +23,8 @@
       "ingredients": "Rye | Amaro | Angostaga | Orange Lemon Foam",
       "taste": "Bitter • Citrusy",
       "full": "2 oz Old Overholt Rye Whiskey\n1 oz Sweet Vermouth\n0.5 oz Amaro Ramazzotti\n4 drops Angostura Bitters\nFloat Canon Foam",
-      "clean": "Old Overholt Rye Whiskey\nSweet Vermouth\nAmaro Ramazzotti\nAngostora Bitters\nCanon Foam",
-      "instructions": "Stir with ice and strain into a double rocks glass filled with one large ice cube.\nTop with Canon Foam. Drop Bitters, or use a spray bottle to apply.\n\nCanon Foam:\n2 sheet's bloomed gelatin 3 ounces hot water\n6 ounces Combier triple sec\n3 ounces fresh lemon juice\n3 large egg whites\n\nPlace the bloomed gelatin in the hot water in an iSi Easy Whip canister and stir until the gelatin has melted. Let sit for a couple of minutes, then stir in the triple sec, lemon juice, and egg whites.\nCharge with 2 N2O chargers and refrigerate until needed."
+      "clean": "Old Overholt Rye Whiskey\nSweet Vermouth\nAmaro Ramazzotti\nAngostura Bitters\nCanon Foam",
+      "instructions": "Stir with ice and strain into a double rocks glass filled with one large ice cube.\nTop with Canon Foam. Drop Bitters, or use a spray bottle to apply.\n\nCanon Foam:\n2 sheets bloomed gelatin 3 ounces hot water\n6 ounces Combier triple sec\n3 ounces fresh lemon juice\n3 large egg whites\n\nPlace the bloomed gelatin in the hot water in an iSi Easy Whip canister and stir until the gelatin has melted. Let sit for a couple of minutes, then stir in the triple sec, lemon juice, and egg whites.\nCharge with 2 N2O chargers and refrigerate until needed."
     },
     "london-fog": {
       "category": "special-creations",
@@ -42,8 +42,8 @@
       "img": "assets/glasses/redzone.png",
       "ingredients": "Bourbon | Raspberry | Whole Egg | Peach Bitters",
       "taste": "Fruity • Sweet",
-      "full": "1.5 oz Builliet Bourbon Whiskey\n1 oz Raspberry Syrup\n0.5 oz Pallini Raspberry Liqueur\n2 dashes Peach Bitters\n1 Whole Egg",
-      "clean": "Builliet Bourbon Whiskey\nRaspberry Syrup\nPallini Raspberry Liqueur\nPeach Bitters\nWhole Egg",
+      "full": "1.5 oz Bulleit Bourbon Whiskey\n1 oz Raspberry Syrup\n0.5 oz Pallini Raspberry Liqueur\n2 dashes Peach Bitters\n1 Whole Egg",
+      "clean": "Bulleit Bourbon Whiskey\nRaspberry Syrup\nPallini Raspberry Liqueur\nPeach Bitters\nWhole Egg",
       "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled coupe glass.\nGarnish with 3 fresh skewered raspberries."
     },
     "knuckles-milk-punch": {
@@ -62,8 +62,8 @@
       "img": "assets/glasses/lateoaxaca.png",
       "ingredients": "Mezcal | Tequila | Coffee Liqueur | Sugar | Bitters",
       "taste": "Smoky • Bitter",
-      "full": "1.5 oz Vida Del Maguey Mezcal\n0.5 oz Adictivo Repasado Tequila\n0.5 oz Mr. Black Coffee Liqueur\n0.25 oz Simple Syrup\n2 dashes Orange Bitters\n2 dashes Angostora Bitters",
-      "clean": "Vida Del Maguey Mezcal\nAdictivo Repasado Tequila\nMr. Black Coffee Liqueur\nSimple Syrup\nOrange Bitters\nAngostora Bitters",
+      "full": "1.5 oz Vida Del Maguey Mezcal\n0.5 oz Adictivo Repasado Tequila\n0.5 oz Mr. Black Coffee Liqueur\n0.25 oz Simple Syrup\n2 dashes Orange Bitters\n2 dashes Angostura Bitters",
+      "clean": "Vida Del Maguey Mezcal\nAdictivo Repasado Tequila\nMr. Black Coffee Liqueur\nSimple Syrup\nOrange Bitters\nAngostura Bitters",
       "instructions": "Stir all ingredients with ice, strain into a rocks glass with one large ice cube.\nOptionally garnish with an orange twist."
     },
     "wedding-old-fashioned": {
@@ -92,8 +92,8 @@
       "img": "assets/glasses/bananastand.png",
       "ingredients": "Rye | Banana | Cognac | Honey | Bitters | Smoked",
       "taste": "Strong • Sweet",
-      "full": "1 oz Rittenhouse Rye Whiskey\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Giffard Banane du Bresil Banana Liqueur\n0.75 oz Honey Syrup\n2 dashes Angostora Bitters",
-      "clean": "Rittenhouse Rye Whiskey\nPierre Ferrand 1840 Cognac\nGiffard Banane du Bresil Banana Liqueur\nHoney Syrup\nAngostora Bitters",
+      "full": "1 oz Rittenhouse Rye Whiskey\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Giffard Banane du Bresil Banana Liqueur\n0.75 oz Honey Syrup\n2 dashes Angostura Bitters",
+      "clean": "Rittenhouse Rye Whiskey\nPierre Ferrand 1840 Cognac\nGiffard Banane du Bresil Banana Liqueur\nHoney Syrup\nAngostura Bitters",
       "instructions": "Stir all ingredients with ice, strain into a Bordeaux glass filled with a single large ice cube. Smoke with oak chips."
     },
     "bananarac": {
@@ -102,13 +102,13 @@
       "img": "assets/glasses/bananarac.png",
       "ingredients": "Absinthe | Banana | Cognac | Rye | Demerara Syrup | Bitters",
       "taste": "Strong • Bitter",
-      "full": "Rinse/Spritz Long Road Distrillery Absinth\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Old Overholt Rye Whiskey\n0.5 oz Giffard Banane du Bresil Banana Liqueur\n1 tsp Demerara Syrup\n1 Dash Peychaud's Bitters",
-      "clean": "Long Road Distrillery Absinth\nPierre Ferrand 1840 Cognac\nOld Overholt Rye Whiskey\nGiffard Banane du Bresil Banana Liqueur\nDemerara Syrup\nPeychaud's Bitters",
-      "instructions": "Rinse a chilled rocks glass with Absinthe, or alternatively use an atomizer to spray 2 spritzes of Absinth. Stir all ingredients with ice, strain into the rocks glass witrh no ice.\nOptionally express a Lemon peel over the drink, use as garnish."
+      "full": "Rinse/Spritz Long Road Distillery Absinth\n1 oz Pierre Ferrand 1840 Cognac\n1 oz Old Overholt Rye Whiskey\n0.5 oz Giffard Banane du Bresil Banana Liqueur\n1 tsp Demerara Syrup\n1 Dash Peychaud's Bitters",
+      "clean": "Long Road Distillery Absinth\nPierre Ferrand 1840 Cognac\nOld Overholt Rye Whiskey\nGiffard Banane du Bresil Banana Liqueur\nDemerara Syrup\nPeychaud's Bitters",
+      "instructions": "Rinse a chilled rocks glass with Absinthe, or alternatively use an atomizer to spray 2 spritzes of Absinth. Stir all ingredients with ice, strain into the rocks glass with no ice.\nOptionally express a Lemon peel over the drink, use as garnish."
     },
-    "ashleys-ideal-daiduri": {
+    "ashleys-ideal-daiquri": {
       "category": "ashleys-blends",
-      "name": "Ashley's Ideal Daiduri",
+      "name": "Ashley's Ideal Daiquri",
       "img": "assets/glasses/idealdaiquri.png",
       "ingredients": "Rum | Raspberry | Lemon",
       "taste": "Tart • Sweet",
@@ -120,10 +120,10 @@
       "category": "ashleys-blends",
       "name": "The RUMantic",
       "img": "assets/glasses/rumantic.png",
-      "ingredients": "Rum | Pineapple | Velvelt Falernum | Lime | Simple | Bitters",
+      "ingredients": "Rum | Pineapple | Velvet Falernum | Lime | Simple | Bitters",
       "taste": "Tart • Strong",
       "full": "1 oz Plantaray 3 Star Light Rum\n1 oz Plantaray Pineapple Rum\n1 oz Lime Juice\n0.5 oz Velvet Falernum\n0.5 oz Simple Syrup\n10 Dashes Angostura Bitters\n10 Dashes Dark Overproof Rum, eg. Dr Bird",
-      "clean": "Plantaray 3 Star Light Rum\nPlantaray Pineapple Rum\nLime Juice\nVelvet Falernum\nSimple Syrup\nAngostora Bitters\nDark Overproof Rum",
+      "clean": "Plantaray 3 Star Light Rum\nPlantaray Pineapple Rum\nLime Juice\nVelvet Falernum\nSimple Syrup\nAngostura Bitters\nDark Overproof Rum",
       "instructions": "Shake with ice and strain into a coupe."
     },
     "good-4-u": {
@@ -162,8 +162,8 @@
       "img": "assets/glasses/amarettosour.png",
       "ingredients": "Amaretto | Bourbon | Lemon | Egg",
       "taste": "Tart • Sweet",
-      "full": "1.5 oz Disaronno Ammaretto\n1 oz Woodford Reserve Bourbon\n1 oz Lemon Juice\n0.5 oz Egg White",
-      "clean": "Disaronno Ammaretto\nWoodford Reserve Bourbon\nLemon Juice\nEgg White",
+      "full": "1.5 oz Disaronno Amaretto\n1 oz Woodford Reserve Bourbon\n1 oz Lemon Juice\n0.5 oz Egg White",
+      "clean": "Disaronno Amaretto\nWoodford Reserve Bourbon\nLemon Juice\nEgg White",
       "instructions": "Add all ingredients to a shaker without ice and dry shake for 10 seconds. Add ice and shake again. Double strain into a chilled rocks glass with one large ice cube.\nGarnish with a Lemon peel and a cherry."
     },
     "corpse-reviver-2": {
@@ -172,8 +172,8 @@
       "img": "assets/glasses/corpse.png",
       "ingredients": "Gin | Lillet Blanc | Cointreau | Lemon | Absinthe",
       "taste": "Herbal • Tart",
-      "full": "0.75 oz New Holland Garnish\n0.75 oz Lillet Blanc\n0.75 oz Cointreau\n0.75 oz Lemon Juice\n1 Dash Absinthe",
-      "clean": "New Holland Garnish\nLillet Blanc\nCointreau\nLemon Juice\nAbsinthe",
+      "full": "0.75 oz New Holland Gin\n0.75 oz Lillet Blanc\n0.75 oz Cointreau\n0.75 oz Lemon Juice\n1 Dash Absinthe",
+      "clean": "New Holland Gin\nLillet Blanc\nCointreau\nLemon Juice\nAbsinthe",
       "instructions": "Shake with ice and strain into a Nick & Nora glass. Optionally garnish with a lemon twist."
     },
     "corn-and-oil": {
@@ -183,7 +183,7 @@
       "ingredients": "Rum | Velvet Falernum | Lime | Bitters",
       "taste": "Bitter • Tart",
       "full": "2 oz Doorlys 12 year Rum\n0.5 oz Falernum\n0.33 oz Lime Juice\n4 Dashes Angostura Bitters",
-      "clean": "Doorlys 12 year Rum\nFalernum\nLime Juice\nAngostora Bitters",
+      "clean": "Doorlys 12 year Rum\nFalernum\nLime Juice\nAngostura Bitters",
       "instructions": "Stir all ingredients with ice, strain into a rocks glass filled with crushed ice. Optionally garnish with a lime wheel."
     },
     "final-ward": {
