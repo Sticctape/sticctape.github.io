@@ -224,6 +224,8 @@ document.querySelectorAll('nav.site-nav ul a')
       updateLoginUI();
       loginOverlay.classList.remove('active');
       loginForm.reset();
+      // show temporary success banner
+      if (typeof showAuthBanner === 'function') showAuthBanner('Successful authentication');
     } else {
       // Login failed
       loginError.textContent = 'Incorrect password';
@@ -237,6 +239,24 @@ document.querySelectorAll('nav.site-nav ul a')
     loginBtn.classList.toggle('is-hidden', isMember);
     logoutBtn.classList.toggle('is-hidden', !isMember);
     document.body.classList.toggle('is-member', isMember);
+  }
+
+  // Show a temporary auth banner message (text) — dismisses after timeout
+  function showAuthBanner(text, ms = 2600) {
+    const banner = document.getElementById('authBanner');
+    const msg = document.getElementById('authBannerMsg');
+    if (!banner || !msg) return;
+    msg.textContent = text;
+    banner.classList.remove('is-hidden');
+    // trigger show animation
+    requestAnimationFrame(() => banner.classList.add('show'));
+    // hide after timeout
+    clearTimeout(banner._hideTimer);
+    banner._hideTimer = setTimeout(() => {
+      banner.classList.remove('show');
+      // after transition remove hidden to keep DOM tidy
+      setTimeout(() => banner.classList.add('is-hidden'), 300);
+    }, ms);
   }
 
   // Logout handler
