@@ -35,6 +35,7 @@
       <li><a href="features"  data-section="features">Features</a></li>
       <li><a href="cocktails" data-section="cocktails">Cocktails</a></li>
       <li><a href="contact"   data-section="contact">Contact</a></li>
+      <li><a href="staff-orders" data-section="staff-orders" class="nav-staff-link is-hidden">Orders</a></li>
       <li class="nav-auth">
         <button id="navLoginBtn" class="nav-login-btn" type="button">Login</button>
         <button id="navLogoutBtn" class="nav-login-btn is-hidden" type="button">Logout</button>
@@ -88,9 +89,6 @@
             <button id="cancelOrder" class="close-btn" type="button" style="flex:1;">Cancel</button>
             <button id="submitOrder" class="close-btn" type="button" style="flex:1;">Submit Order</button>
           </div>
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAACJP7kPqnBDe0DXr">
-
-          </div>
         </div>
   </div>
 </div>
@@ -127,11 +125,6 @@
 
 <!-- overlay behind cart flyout (click to close) -->
 <div class="cart-flyout-overlay is-hidden" id="cartFlyoutOverlay" aria-hidden="true"></div>
-    </form>
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
   <!-- temporary auth banner (controlled by JS) -->
   <div id="authBanner" class="auth-banner is-hidden" role="status" aria-live="polite">
@@ -139,6 +132,5 @@
   </div>
 
   <script src="assets/js/site.js"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>

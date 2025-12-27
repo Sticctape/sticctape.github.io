@@ -9,7 +9,8 @@ const CUSTOMER_PASSWORD = 'OrderUp!';   // customers who can place orders
 // Global cooldown tracking for order submissions
 let lastOrderTime = 0;
 const ORDER_COOLDOWN_MS = 60000; // 60 seconds
-
+// Global polling for order status updates
+let statusPollingInterval = null;
 document.addEventListener('DOMContentLoaded', () => {
   const navBar   = document.querySelector('nav.site-nav');
   const navLinks = navBar.querySelectorAll('a[data-section]');
@@ -23,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!resp.ok) throw new Error(`404 for ${id}.html`);
       content.innerHTML = await resp.text();
       if (id === 'cocktails') initCocktailModals();
+      // Re-execute scripts in loaded content
+      const scripts = content.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        newScript.textContent = script.textContent;
+        script.parentNode.replaceChild(newScript, script);
+      });
     } catch (err) {
       content.innerHTML = `<p style="color:#f55">Failed to load page: ${err}</p>`;
     }
@@ -159,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isStaff));
 
         overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
       })
     );
 
@@ -173,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetModal = () => {
       mImg.classList.remove('expanded');
       overlay.classList.remove('active');
+      document.body.style.overflow = '';
       try {
         if (modalEl) modalEl.classList.remove('show-order');
         if (orderName) orderName.value = '';
@@ -230,19 +240,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (orderError) orderError.classList.add('is-hidden');
         
-        // TODO: Re-enable Turnstile token verification once worker is updated
-        // For now, send empty token to bypass Turnstile verification
-        let turnstileToken = '';
-        
         // Disable button during submission
         submitOrder.disabled = true;
         
         // Prepare order data (matching worker expectations)
         const orderData = {
+          name,
           drink: (mTitle && mTitle.textContent) || '',
           qty: 1,
-          notes: `Customer: ${name}`,
-          turnstileToken
+          notes: ''
         };
         
         try {
@@ -257,11 +263,23 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error(`Server error: ${resp.statusText}`);
           }
           
-          // Success: store locally and update UI
+          const responseData = await resp.json();
+          const orderId = responseData.orderId;
+          
+          // Success: store locally with orderId and update UI
           const existing = JSON.parse(localStorage.getItem('orders') || '[]');
-          existing.push({ id: Date.now(), name, recipe: orderData.drink, ts: new Date().toISOString() });
+          existing.push({ 
+            id: orderId, 
+            name, 
+            recipe: orderData.drink, 
+            status: 'Received',
+            ts: new Date().toISOString() 
+          });
           localStorage.setItem('orders', JSON.stringify(existing));
           updateCartCount();
+          
+          // Start polling for status updates
+          startStatusPolling();
           
           if (typeof showAuthBanner === 'function') showAuthBanner(`Order placed for ${name}`);
           
@@ -299,6 +317,81 @@ function updateCartCount() {
       cartCount.textContent = orders.length ? String(orders.length) : '0';
     }
   } catch (e) { /* ignore */ }
+}
+
+// Poll for order status updates every 10 seconds (only when orders exist)
+async function pollOrderStatuses() {
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+  if (orders.length === 0) {
+    stopStatusPolling();
+    return;
+  }
+
+  for (const order of orders) {
+    try {
+      const resp = await fetch(`https://streeter.cc/api/orders/${order.id}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        order.status = data.status;
+      }
+    } catch (e) {
+      console.warn(`Failed to fetch status for order ${order.id}:`, e);
+    }
+  }
+
+  localStorage.setItem('orders', JSON.stringify(orders));
+  
+  // Re-render cart if it's open
+  const cartFlyoutBody = document.getElementById('cartFlyoutBody');
+  if (cartFlyoutBody && document.getElementById('cartFlyout').classList.contains('show')) {
+    renderCartItems();
+  }
+}
+
+function startStatusPolling() {
+  if (statusPollingInterval) return; // Already polling
+  
+  statusPollingInterval = setInterval(pollOrderStatuses, 10000); // Poll every 10 seconds
+  pollOrderStatuses(); // Initial poll immediately
+}
+
+function stopStatusPolling() {
+  if (statusPollingInterval) {
+    clearInterval(statusPollingInterval);
+    statusPollingInterval = null;
+  }
+}
+
+function renderCartItems() {
+  const cartFlyoutBody = document.getElementById('cartFlyoutBody');
+  if (!cartFlyoutBody) return;
+  const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+  if (orders.length === 0) {
+    cartFlyoutBody.innerHTML = '<p class="cart-empty">No orders yet</p>';
+    stopStatusPolling();
+    return;
+  }
+  cartFlyoutBody.innerHTML = orders.map((order, idx) => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <p class="recipe">${order.recipe}</p>
+        <p class="name">For: ${order.name}</p>
+        <p class="order-id" style="font-size: 0.8rem; opacity: 0.6; margin: 4px 0 0;">ID: ${order.id}</p>
+        <p class="order-status" style="font-size: 0.85rem; color: #e74; margin: 4px 0 0; font-weight: 600;">${order.status || 'Received'}</p>
+      </div>
+      <button class="cart-item-remove" data-order-id="${order.id}" type="button">Remove</button>
+    </div>
+  `).join('');
+  // add remove button handlers
+  cartFlyoutBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const orderId = e.target.dataset.orderId;
+      const filtered = orders.filter(o => o.id !== orderId);
+      localStorage.setItem('orders', JSON.stringify(filtered));
+      updateLoginUI(); // refresh cart count
+      renderCartItems(); // re-render
+    });
+  });
 }
 
     const nav      = document.querySelector('.site-nav');
@@ -368,6 +461,7 @@ document.querySelectorAll('nav.site-nav ul a')
       // Staff (member) login: full recipe access
       loginError.classList.add('is-hidden');
       localStorage.setItem('isStaff', 'true');
+      localStorage.setItem('staffToken', 'staff_1b4f0e9851971998e732078544c11c82591555c3');
       updateLoginUI();
       loginOverlay.classList.remove('active');
       loginForm.reset();
@@ -419,6 +513,10 @@ document.querySelectorAll('nav.site-nav ul a')
     document.body.classList.toggle('is-staff', isStaff);
     document.body.classList.toggle('is-customer', isCustomer);
 
+    // show/hide staff orders link
+    const staffOrdersLink = document.querySelector('.nav-staff-link');
+    if (staffOrdersLink) staffOrdersLink.classList.toggle('is-hidden', !isStaff);
+
     // show cart for customers and staff, update count
     try {
       const cartWrap = document.getElementById('navCartWrap');
@@ -449,6 +547,7 @@ document.querySelectorAll('nav.site-nav ul a')
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('isStaff');
     localStorage.removeItem('isCustomer');
+    localStorage.removeItem('staffToken');
     updateLoginUI();
   });
 
@@ -487,32 +586,4 @@ document.querySelectorAll('nav.site-nav ul a')
     if (closeCartBtn) closeCartBtn.addEventListener('click', closeCartPanel);
     if (cartFlyoutOverlay) cartFlyoutOverlay.addEventListener('click', closeCartPanel);
 
-    // Render cart items from localStorage
-    function renderCartItems() {
-      if (!cartFlyoutBody) return;
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      if (orders.length === 0) {
-        cartFlyoutBody.innerHTML = '<p class="cart-empty">No orders yet</p>';
-        return;
-      }
-      cartFlyoutBody.innerHTML = orders.map((order, idx) => `
-        <div class="cart-item">
-          <div class="cart-item-info">
-            <p class="recipe">${order.recipe}</p>
-            <p class="name">For: ${order.name}</p>
-          </div>
-          <button class="cart-item-remove" data-order-id="${order.id}" type="button">Remove</button>
-        </div>
-      `).join('');
-      // add remove button handlers
-      cartFlyoutBody.querySelectorAll('.cart-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const orderId = parseInt(e.target.dataset.orderId);
-          const filtered = orders.filter(o => o.id !== orderId);
-          localStorage.setItem('orders', JSON.stringify(filtered));
-          updateLoginUI(); // refresh cart count
-          renderCartItems(); // re-render
-        });
-      });
-    }
   } catch (e) { /* ignore */ }

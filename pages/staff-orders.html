@@ -1,0 +1,293 @@
+<style>
+.staff-orders-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.staff-orders-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+}
+
+.staff-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.staff-orders-table th,
+.staff-orders-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.staff-orders-table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.staff-orders-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.order-status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-received {
+  background: rgba(100, 150, 255, 0.2);
+  color: #64a8ff;
+}
+
+.status-making {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.status-ready {
+  background: rgba(100, 200, 100, 0.2);
+  color: #64c864;
+}
+
+.status-pickedup {
+  background: rgba(200, 100, 200, 0.2);
+  color: #c864c8;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.status-btn {
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.status-btn:active {
+  transform: scale(0.95);
+}
+
+.staff-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #aaa;
+}
+
+.staff-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+.staff-error {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 4px;
+  color: #ff6b6b;
+  margin-bottom: 2rem;
+}
+
+.auto-refresh-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.auto-refresh-toggle input {
+  cursor: pointer;
+}
+
+.auto-refresh-toggle label {
+  cursor: pointer;
+  user-select: none;
+}
+</style>
+
+<div class="staff-orders-container">
+  <h2 class="staff-orders-title">Order Management</h2>
+  
+  <div class="auto-refresh-toggle">
+    <input type="checkbox" id="autoRefreshToggle" checked>
+    <label for="autoRefreshToggle">Auto-refresh every 10 seconds</label>
+  </div>
+  
+  <div id="staffError" class="staff-error is-hidden"></div>
+  
+  <table class="staff-orders-table" id="staffOrdersTable">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Drink</th>
+        <th>Qty</th>
+        <th>Notes</th>
+        <th>Status</th>
+        <th>Time</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="staffOrdersBody">
+      <tr><td colspan="8" class="staff-loading">Loading orders...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Staff orders dashboard logic
+let staffAutoRefresh = true;
+let staffRefreshInterval = null;
+
+async function loadStaffOrders() {
+  const tbody = document.getElementById('staffOrdersBody');
+  const errorDiv = document.getElementById('staffError');
+  const staffToken = localStorage.getItem('staffToken');
+  
+  try {
+    errorDiv.classList.add('is-hidden');
+    const resp = await fetch('https://streeter.cc/api/all-orders', {
+      headers: {
+        'X-Staff-Token': staffToken
+      }
+    });
+    
+    if (!resp.ok) {
+      if (resp.status === 401) throw new Error("Unauthorized - invalid token");
+      throw new Error(`Server error: ${resp.statusText}`);
+    }
+    
+    const data = await resp.json();
+    const orders = data.orders || [];
+    
+    if (orders.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="staff-empty">No orders yet</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = orders.map(order => {
+      const statusClass = `status-${order.status.toLowerCase()}`;
+      const createdAt = new Date(order.createdAt);
+      const timeStr = createdAt.toLocaleString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'America/New_York'
+      });
+      
+      return `
+        <tr>
+          <td><strong>${order.orderId}</strong></td>
+          <td>${order.name}</td>
+          <td>${order.drink}</td>
+          <td>${order.qty}</td>
+          <td>${order.notes || '—'}</td>
+          <td><span class="order-status-badge ${statusClass}">${order.status}</span></td>
+          <td style="font-size: 0.85rem;">${timeStr}</td>
+          <td>
+            <div class="status-buttons">
+              ${order.status !== 'Making' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Making">Making</button>` : ''}
+              ${order.status !== 'Ready' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Ready">Ready</button>` : ''}
+              ${order.status !== 'Picked Up' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Picked Up">Picked Up</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    // Add event listeners to all status buttons
+    tbody.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const orderId = btn.dataset.orderId;
+        const newStatus = btn.dataset.status;
+        await updateOrderStatus(orderId, newStatus);
+      });
+    });
+    
+  } catch (err) {
+    errorDiv.textContent = `Error loading orders: ${err.message}`;
+    errorDiv.classList.remove('is-hidden');
+    tbody.innerHTML = '<tr><td colspan="8" class="staff-error">Failed to load orders</td></tr>';
+  }
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  const staffToken = localStorage.getItem('staffToken');
+  try {
+    const resp = await fetch(`https://streeter.cc/api/status/${orderId}/${newStatus}`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Staff-Token': staffToken
+      }
+    });
+    
+    if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
+    
+    // Reload table after successful update
+    await loadStaffOrders();
+  } catch (err) {
+    const errorDiv = document.getElementById('staffError');
+    errorDiv.textContent = `Error updating order: ${err.message}`;
+    errorDiv.classList.remove('is-hidden');
+  }
+}
+function startStaffAutoRefresh() {
+  if (staffRefreshInterval) clearInterval(staffRefreshInterval);
+  staffRefreshInterval = setInterval(loadStaffOrders, 10000); // Refresh every 10 seconds
+  loadStaffOrders(); // Initial load
+}
+
+function stopStaffAutoRefresh() {
+  if (staffRefreshInterval) {
+    clearInterval(staffRefreshInterval);
+    staffRefreshInterval = null;
+  }
+}
+
+// Toggle auto-refresh
+const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+if (autoRefreshToggle) {
+  autoRefreshToggle.addEventListener('change', (e) => {
+    staffAutoRefresh = e.target.checked;
+    if (staffAutoRefresh) {
+      startStaffAutoRefresh();
+    } else {
+      stopStaffAutoRefresh();
+    }
+  });
+}
+
+// Initial load
+loadStaffOrders();
+startStaffAutoRefresh();
+</script>
