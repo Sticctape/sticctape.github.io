@@ -231,8 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (orderError) orderError.classList.add('is-hidden');
         
         // Get Turnstile token (only for customers, not staff)
-        let turnstileToken = null;
-        if (!isStaff && typeof turnstile !== 'undefined') {
+        if (!isStaff && !isLocalhost && typeof turnstile !== 'undefined') {
           turnstileToken = turnstile.getResponse();
           if (!turnstileToken) {
             if (orderError) {
