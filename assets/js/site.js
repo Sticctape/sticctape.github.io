@@ -7,6 +7,8 @@ let lastOrderTime = 0;
 const ORDER_COOLDOWN_MS = 60000; // 60 seconds
 // Global polling for order status updates
 let statusPollingInterval = null;
+// Track order statuses for notification purposes
+let previousOrderStatuses = {};
 document.addEventListener('DOMContentLoaded', () => {
   const navBar   = document.querySelector('nav.site-nav');
   const navLinks = navBar.querySelectorAll('a[data-section]');
@@ -347,6 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.onclick  = e => { if (e.target === overlay) resetModal(); };
   }
 
+  // Request notification permission for order ready alerts
+  requestNotificationPermission();
+
   // 🔰 Initial load based on hash (deep linking)
   const first = window.location.hash.replace('#', '') || 'about';
   activateSection(first);
@@ -382,6 +387,49 @@ function updateCartCount() {
   } catch (e) { /* ignore */ }
 }
 
+// Request permission for notifications (call once on page load)
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('This browser does not support notifications');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    return; // Already granted
+  }
+
+  if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted');
+      }
+    });
+  }
+}
+
+// Send notification when order is ready
+function sendOrderNotification(order) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+
+  const notification = new Notification('🎉 Order Ready!', {
+    body: `${order.name}'s ${order.recipe} is ready for pickup!`,
+    icon: 'assets/thestreeters.png',
+    tag: `order-${order.id}`,
+    requireInteraction: true
+  });
+
+  // Click notification to open cart
+  notification.addEventListener('click', () => {
+    window.focus();
+    const cartIcon = document.getElementById('navCart') || document.querySelector('.nav-cart');
+    if (cartIcon) {
+      cartIcon.click();
+    }
+  });
+}
+
 // Poll for order status updates every 10 seconds (only when orders exist)
 async function pollOrderStatuses() {
   const orders = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -398,9 +446,17 @@ async function pollOrderStatuses() {
       const resp = await fetch(`https://streeter.cc/api/orders/${order.id}`);
       if (resp.ok) {
         const data = await resp.json();
+        
+        // Check if status changed
         if (order.status !== data.status) {
+          const oldStatus = order.status;
           order.status = data.status;
           statusesChanged = true;
+          
+          // Send notification if order became "Ready"
+          if (data.status === 'Ready' && oldStatus !== 'Ready') {
+            sendOrderNotification(order);
+          }
         }
         ordersToKeep.push(order);
       } else {
