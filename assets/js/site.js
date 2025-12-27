@@ -352,6 +352,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Request notification permission for order ready alerts
   requestNotificationPermission();
 
+  // Register Service Worker for background notifications on mobile
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('assets/js/sw.js').then(reg => {
+      console.log('Service Worker registered for notifications');
+    }).catch(err => {
+      console.log('Service Worker registration failed:', err);
+    });
+  }
+
   // 🔰 Initial load based on hash (deep linking)
   const first = window.location.hash.replace('#', '') || 'about';
   activateSection(first);
@@ -413,11 +422,17 @@ function sendOrderNotification(order) {
     return;
   }
 
-  const notification = new Notification('🎉 Order Ready!', {
+  // Add vibration on mobile devices
+  if ('vibrate' in navigator) {
+    navigator.vibrate([200, 100, 200]); // Vibration pattern: 200ms, pause 100ms, 200ms
+  }
+
+  const notification = new Notification('🥃🍸 Order Ready!', {
     body: `${order.name}'s ${order.recipe} is ready for pickup!`,
-    icon: 'assets/thestreeters.png',
+    icon: 'assets/100px_StreeterDistilleryLogoW.png',
     tag: `order-${order.id}`,
-    requireInteraction: true
+    requireInteraction: true,
+    badge: 'assets/100px_StreeterDistilleryLogoW.png'
   });
 
   // Click notification to open cart
