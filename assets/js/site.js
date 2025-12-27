@@ -399,32 +399,51 @@ function updateCartCount() {
 // Request permission for notifications (call once on page load)
 function requestNotificationPermission() {
   if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
+    console.log('❌ This browser does not support Notifications API');
     return;
   }
 
+  console.log('📱 Current notification permission:', Notification.permission);
+
   if (Notification.permission === 'granted') {
+    console.log('✅ Notification permission already granted');
     return; // Already granted
   }
 
   if (Notification.permission !== 'denied') {
     Notification.requestPermission().then(permission => {
+      console.log('🔔 Notification permission:', permission);
       if (permission === 'granted') {
-        console.log('Notification permission granted');
+        console.log('✅ Notification permission granted by user');
+        // Send a test notification
+        new Notification('🥃🍸 Notifications Enabled!', {
+          body: 'You will receive alerts when your order is ready.',
+          icon: 'assets/100px_StreeterDistilleryLogoW.png'
+        });
+      } else if (permission === 'denied') {
+        console.log('❌ Notification permission denied by user');
       }
+    }).catch(err => {
+      console.error('❌ Error requesting notification permission:', err);
     });
+  } else {
+    console.log('❌ Notification permission previously denied');
   }
 }
 
 // Send notification when order is ready
 function sendOrderNotification(order) {
   if (!('Notification' in window) || Notification.permission !== 'granted') {
+    console.log('⚠️ Cannot send notification: API unavailable or permission not granted');
     return;
   }
+
+  console.log('📢 Sending notification for order:', order.id);
 
   // Add vibration on mobile devices
   if ('vibrate' in navigator) {
     navigator.vibrate([200, 100, 200]); // Vibration pattern: 200ms, pause 100ms, 200ms
+    console.log('📳 Vibration sent');
   }
 
   const notification = new Notification('🥃🍸 Order Ready!', {
@@ -435,8 +454,11 @@ function sendOrderNotification(order) {
     badge: 'assets/100px_StreeterDistilleryLogoW.png'
   });
 
+  console.log('✅ Notification displayed');
+
   // Click notification to open cart
   notification.addEventListener('click', () => {
+    console.log('👆 Notification clicked');
     window.focus();
     const cartIcon = document.getElementById('navCart') || document.querySelector('.nav-cart');
     if (cartIcon) {
