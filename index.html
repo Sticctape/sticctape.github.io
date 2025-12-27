@@ -14,14 +14,18 @@
 <body>
   <!-- HERO -->
     <header class="hero">
-        <img id="siteHeroBig" src="assets/thestreeters.png" alt="The Streeters">
+        <a href="./" style="text-decoration:none;">
+            <img id="siteHeroBig" src="assets/thestreeters.png" alt="The Streeters">
+        </a>
     </header>
 
   <!-- NAVBAR -->
 <div id="nav-sentinel" style="height:1px;"></div>
   <nav class="site-nav">
     <div class="nav-left-hero">
-        <img id="siteHeroSmall" src="assets/thestreeters.png" alt="The Streeters small">
+        <a href="index.html" style="text-decoration:none;display:block;pointer-events:auto;">
+            <img id="siteHeroSmall" src="assets/thestreeters.png" alt="The Streeters small">
+        </a>
     </div>
     <button class="nav-toggle" aria-expanded="false" aria-label="Menu">
         <span class="burger"></span>
@@ -36,6 +40,11 @@
         <button id="navLogoutBtn" class="nav-login-btn is-hidden" type="button">Logout</button>
       </li>
     </ul>
+    <!-- cart (shown for customers) -->
+    <div id="navCartWrap" class="nav-cart-wrap is-hidden" aria-hidden="true">
+      <img id="navCart" class="nav-cart" src="assets/cart.png" alt="Cart">
+      <span id="cartCount" class="cart-count">0</span>
+    </div>
   </nav>
 
   <!-- LOGO & DIVIDER (shown only on Cocktails) -->
@@ -48,21 +57,38 @@
   <!-- Cocktail MODAL -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-        <!-- header stays fixed -->
-        <img id="modalImg" alt="">
-        <h3 id="modalTitle"></h3>
+        <div class="modal-main">
+          <!-- header stays fixed -->
+          <img id="modalImg" alt="">
+          <h3 id="modalTitle"></h3>
 
-        <!-- ▼▼ scrollable section ▼▼ -->
-            <div class="modal-body">
-                <ul id="modalIngredients"></ul>
-                <div class="divider"></div>
-                <p id="modalInstructions"></p>
-                <div class="divider"></div>
-            </div>
-        <!-- ▲▲ scrolls ▲▲ -->
+          <!-- ▼▼ scrollable section ▼▼ -->
+              <div class="modal-body">
+                  <ul id="modalIngredients"></ul>
+                  <div class="divider"></div>
+                  <p id="modalInstructions"></p>
+                  <div class="divider"></div>
+              </div>
+          <!-- ▲▲ scrolls ▲▲ -->
 
-        <!-- footer stays fixed -->
-  <button class="close-btn" id="closeBtn">Close</button>
+            <!-- footer stays fixed -->
+          <div class="modal-footer" style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;">
+            <button class="close-btn" id="closeBtn">Close</button>
+            <button class="close-btn order-btn is-hidden" id="orderBtn" type="button">Order</button>
+          </div>
+        </div>
+
+        <!-- Order panel (slides in from right) -->
+        <div class="order-panel" id="orderPanel" aria-hidden="true">
+          <h3 style="margin-top:0;">Place Order</h3>
+          <p style="opacity:.85;">Enter the name for this order:</p>
+          <input id="orderName" type="text" placeholder="Name" style="width:100%;margin:12px 0;padding:.5rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;">
+          <p id="orderError" class="is-hidden" style="color:#f55;margin:0 0 8px;font-size:.9rem"></p>
+          <div style="display:flex;gap:8px;width:100%;">
+            <button id="cancelOrder" class="close-btn" type="button" style="flex:1;">Cancel</button>
+            <button id="submitOrder" class="close-btn" type="button" style="flex:1;">Submit Order</button>
+          </div>
+        </div>
   </div>
 </div>
 
@@ -81,6 +107,23 @@
         <button type="submit" class="close-btn" style="flex:1;">Log in</button>
         <button type="button" class="close-btn" id="loginCloseBtn" style="flex:1;">Cancel</button>
       </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cart flyout panel (slides in from right) -->
+<div class="cart-flyout is-hidden" id="cartFlyout" aria-hidden="true">
+  <div class="cart-flyout-header">
+    <h3 style="margin:0;">Your Orders</h3>
+    <button id="closeCartBtn" class="close-btn" type="button" style="padding:.3rem .8rem;font-size:.85rem;">Close</button>
+  </div>
+  <div class="cart-flyout-body" id="cartFlyoutBody">
+    <!-- orders rendered here -->
+  </div>
+</div>
+
+<!-- overlay behind cart flyout (click to close) -->
+<div class="cart-flyout-overlay is-hidden" id="cartFlyoutOverlay" aria-hidden="true"></div>
     </form>
   </div>
 </div>

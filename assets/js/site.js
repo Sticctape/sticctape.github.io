@@ -2,12 +2,17 @@
    site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
-// STATIC PASSWORD - If you found this, I don't care
-const MEMBER_PASSWORD = 'iLoveCocktails';
+// STATIC PASSWORDS
+const STAFF_PASSWORD = 'iLoveCocktails'; // staff / members (full recipe access)
+const CUSTOMER_PASSWORD = 'OrderUp!';   // customers who can place orders
+
+// Global cooldown tracking for order submissions
+let lastOrderTime = 0;
+const ORDER_COOLDOWN_MS = 60000; // 60 seconds
 
 document.addEventListener('DOMContentLoaded', () => {
   const navBar   = document.querySelector('nav.site-nav');
-  const navLinks = navBar.querySelectorAll('a');
+  const navLinks = navBar.querySelectorAll('a[data-section]');
   const content  = document.getElementById('content');
   const logo     = document.getElementById('distLogo');
   const divider  = document.getElementById('logoDivider');
@@ -66,6 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const mIng     = document.getElementById('modalIngredients');
     const mInstr   = document.getElementById('modalInstructions');
     const closeBtn = document.getElementById('closeBtn');
+    const orderBtn = document.getElementById('orderBtn');
+    const modalEl = overlay.querySelector('.modal');
+    const orderPanel = document.getElementById('orderPanel');
+    const orderName = document.getElementById('orderName');
+    const orderError = document.getElementById('orderError');
+    const submitOrder = document.getElementById('submitOrder');
+    const cancelOrder = document.getElementById('cancelOrder');
 
     // helper to load recipes.json once
     async function loadRecipes() {
@@ -112,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach(card =>
       card.addEventListener('click', async () => {
-        const isMember = localStorage.getItem('isMember') === 'true';
+        const isStaff = localStorage.getItem('isStaff') === 'true';
+        const isCustomer = localStorage.getItem('isCustomer') === 'true';
 
         // Load recipe data from recipes.json (ingredients + instructions)
         const recipes = await loadRecipes();
@@ -124,16 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mTitle.textContent = (recipe && recipe.name) || card.dataset.name || '';
 
         // Ingredients: members see `full`, non-members see `clean` (fallback to dataset)
-        const ingredientData = isMember
-                              ? (recipe && recipe.full) || card.dataset.clean || ''
-                              : (recipe && recipe.clean) || card.dataset.clean || '';
+        const ingredientData = isStaff
+                  ? (recipe && recipe.full) || card.dataset.clean || ''
+                  : (recipe && recipe.clean) || card.dataset.clean || '';
         mIng.innerHTML = ingredientData
                             .split('\n')
                             .map(t => `<li>${t.trim()}</li>`)
                             .join('');
 
         // Instructions: members see the recipe.instructions from JSON; non-members get a login prompt
-        if (isMember) {
+        if (isStaff) {
           const instr = (recipe && recipe.instructions) || '';
           mInstr.innerHTML = instr
                                 .replace(/(?:\r\n|\r|\n)/g, '<br>');
@@ -141,18 +154,117 @@ document.addEventListener('DOMContentLoaded', () => {
           mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Login to view detailed measurements and instructions.</p>';
         }
 
+        // show/hide order button for customers and staff
+        const orderBtn = document.getElementById('orderBtn');
+        if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isStaff));
+
         overlay.classList.add('active');
       })
     );
 
-    closeBtn.onclick = () => overlay.classList.remove('active');
-    overlay.onclick  = e => { if (e.target === overlay) overlay.classList.remove('active'); };
+    // Toggle image expansion on click
+    mImg.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('Image clicked, toggling expanded class');
+      mImg.classList.toggle('expanded');
+    }, true); // use capture phase to ensure this fires
+
+    // Reset image size and order panel when modal closes
+    const resetModal = () => {
+      mImg.classList.remove('expanded');
+      overlay.classList.remove('active');
+      try {
+        if (modalEl) modalEl.classList.remove('show-order');
+        if (orderName) orderName.value = '';
+        if (orderError) orderError.classList.add('is-hidden');
+        if (submitOrder) { submitOrder.disabled = false; submitOrder.textContent = 'Submit Order'; }
+      } catch (e) { /* ignore */ }
+    };
+
+    // Order button: open order panel (slide left)
+    if (orderBtn && modalEl && orderPanel) {
+      orderBtn.addEventListener('click', () => {
+        // prevent double-tap spam
+        orderBtn.disabled = true;
+        modalEl.classList.add('show-order');
+        orderPanel.setAttribute('aria-hidden', 'false');
+        // focus input after a tiny delay so it's visible
+        setTimeout(() => {
+          if (orderName) orderName.focus();
+          orderBtn.disabled = false;
+        }, 250);
+      });
+    }
+
+    // Cancel / back from order panel
+    if (cancelOrder && modalEl) {
+      cancelOrder.addEventListener('click', () => {
+        modalEl.classList.remove('show-order');
+        if (orderName) orderName.value = '';
+        if (orderError) orderError.classList.add('is-hidden');
+      });
+    }
+
+    // Submit order (with global 30s cooldown to prevent rapid repeats)
+    if (submitOrder) {
+      submitOrder.addEventListener('click', () => {
+        // Check global cooldown (only for customers, not staff)
+        const isStaff = localStorage.getItem('isStaff') === 'true';
+        const now = Date.now();
+        if (!isStaff && now - lastOrderTime < ORDER_COOLDOWN_MS) {
+          const remaining = Math.ceil((ORDER_COOLDOWN_MS - (now - lastOrderTime)) / 1000);
+          if (orderError) {
+            orderError.textContent = `Please wait ${remaining}s before placing another order`;
+            orderError.classList.remove('is-hidden');
+          }
+          return;
+        }
+        
+        const name = (orderName && orderName.value || '').trim();
+        if (!name) {
+          if (orderError) {
+            orderError.textContent = 'Please enter a name';
+            orderError.classList.remove('is-hidden');
+          }
+          return;
+        }
+        if (orderError) orderError.classList.add('is-hidden');
+        
+        // store order locally
+        try {
+          const existing = JSON.parse(localStorage.getItem('orders') || '[]');
+          existing.push({ id: Date.now(), name, recipe: (mTitle && mTitle.textContent) || '', ts: new Date().toISOString() });
+          localStorage.setItem('orders', JSON.stringify(existing));
+          updateCartCount(); // update badge immediately
+        } catch (e) { /* ignore */ }
+        
+        if (typeof showAuthBanner === 'function') showAuthBanner(`Order placed for ${name}`);
+        
+        // Update global cooldown (only for customers, not staff) and close modal
+        if (!isStaff) lastOrderTime = now;
+        resetModal();
+      });
+    }
+
+    closeBtn.onclick = resetModal;
+    overlay.onclick  = e => { if (e.target === overlay) resetModal(); };
   }
 
   // 🔰 Initial load based on hash (deep linking)
   const first = window.location.hash.replace('#', '') || 'about';
   activateSection(first);
 });
+
+// Helper: update cart count badge from localStorage
+function updateCartCount() {
+  try {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      cartCount.textContent = orders.length ? String(orders.length) : '0';
+    }
+  } catch (e) { /* ignore */ }
+}
 
     const nav      = document.querySelector('.site-nav');
     const toggle   = document.querySelector('.nav-toggle');
@@ -217,15 +329,36 @@ document.querySelectorAll('nav.site-nav ul a')
     e.preventDefault();
     const password = loginPassword.value;
 
-    if (password === MEMBER_PASSWORD) {
-      // Login successful
+    if (password === STAFF_PASSWORD) {
+      // Staff (member) login: full recipe access
       loginError.classList.add('is-hidden');
-      localStorage.setItem('isMember', 'true');
+      localStorage.setItem('isStaff', 'true');
       updateLoginUI();
       loginOverlay.classList.remove('active');
       loginForm.reset();
-      // show temporary success banner
-      if (typeof showAuthBanner === 'function') showAuthBanner('Successful authentication');
+      if (typeof showAuthBanner === 'function') showAuthBanner('Staff authentication');
+      // close mobile nav if it's open (same behavior as selecting a page)
+      try {
+        if (nav && nav.classList.contains('open')) {
+          nav.classList.remove('open');
+          document.body.classList.remove('menu-open');
+          if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
+        }
+      } catch (e) { /* silent */ }
+    } else if (password === CUSTOMER_PASSWORD) {
+      // Customer login: enable ordering UI
+      loginError.classList.add('is-hidden');
+      localStorage.setItem('isCustomer', 'true');
+      // update UI immediately
+      updateLoginUI();
+      // reveal order button if modal is currently present
+      try {
+        const orderBtnNow = document.getElementById('orderBtn');
+        if (orderBtnNow) orderBtnNow.classList.remove('is-hidden');
+      } catch (e) {}
+      loginOverlay.classList.remove('active');
+      loginForm.reset();
+      if (typeof showAuthBanner === 'function') showAuthBanner('Customer mode enabled');
       // close mobile nav if it's open (same behavior as selecting a page)
       try {
         if (nav && nav.classList.contains('open')) {
@@ -241,12 +374,22 @@ document.querySelectorAll('nav.site-nav ul a')
     }
   });
 
-  // Update UI based on login status
+  // Update UI based on login status (staff or customer)
   function updateLoginUI() {
-    const isMember = localStorage.getItem('isMember') === 'true';
-    loginBtn.classList.toggle('is-hidden', isMember);
-    logoutBtn.classList.toggle('is-hidden', !isMember);
-    document.body.classList.toggle('is-member', isMember);
+    const isStaff = localStorage.getItem('isStaff') === 'true';
+    const isCustomer = localStorage.getItem('isCustomer') === 'true';
+    const isLoggedIn = isStaff || isCustomer;
+    loginBtn.classList.toggle('is-hidden', isLoggedIn);
+    logoutBtn.classList.toggle('is-hidden', !isLoggedIn);
+    document.body.classList.toggle('is-staff', isStaff);
+    document.body.classList.toggle('is-customer', isCustomer);
+
+    // show cart for customers and staff, update count
+    try {
+      const cartWrap = document.getElementById('navCartWrap');
+      if (cartWrap) cartWrap.classList.toggle('is-hidden', !(isCustomer || isStaff));
+      updateCartCount(); // use helper to update badge
+    } catch (e) { /* ignore */ }
   }
 
   // Show a temporary auth banner message (text) — dismisses after timeout
@@ -267,11 +410,74 @@ document.querySelectorAll('nav.site-nav ul a')
     }, ms);
   }
 
-  // Logout handler
+  // Logout handler (clears staff and customer flags)
   logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('isMember');
+    localStorage.removeItem('isStaff');
+    localStorage.removeItem('isCustomer');
     updateLoginUI();
   });
 
   // Check login status on page load
   updateLoginUI();
+
+  // Nav cart click behavior (placeholder: shows summary banner)
+  try {
+    const navCartWrap = document.getElementById('navCartWrap');
+    const cartCountEl = document.getElementById('cartCount');
+    const cartFlyout = document.getElementById('cartFlyout');
+    const cartFlyoutOverlay = document.getElementById('cartFlyoutOverlay');
+    const cartFlyoutBody = document.getElementById('cartFlyoutBody');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+
+    // Open cart flyout
+    if (navCartWrap && cartFlyout && cartFlyoutOverlay) {
+      navCartWrap.addEventListener('click', () => {
+        cartFlyout.classList.remove('is-hidden');
+        cartFlyout.classList.add('show');
+        cartFlyoutOverlay.classList.remove('is-hidden');
+        cartFlyoutOverlay.classList.add('show');
+        // populate cart items
+        renderCartItems();
+      });
+    }
+
+    // Close cart flyout
+    const closeCartPanel = () => {
+      if (cartFlyout) cartFlyout.classList.remove('show');
+      if (cartFlyoutOverlay) {
+        cartFlyoutOverlay.classList.remove('show');
+        setTimeout(() => cartFlyoutOverlay.classList.add('is-hidden'), 250);
+      }
+    };
+    if (closeCartBtn) closeCartBtn.addEventListener('click', closeCartPanel);
+    if (cartFlyoutOverlay) cartFlyoutOverlay.addEventListener('click', closeCartPanel);
+
+    // Render cart items from localStorage
+    function renderCartItems() {
+      if (!cartFlyoutBody) return;
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      if (orders.length === 0) {
+        cartFlyoutBody.innerHTML = '<p class="cart-empty">No orders yet</p>';
+        return;
+      }
+      cartFlyoutBody.innerHTML = orders.map((order, idx) => `
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <p class="recipe">${order.recipe}</p>
+            <p class="name">For: ${order.name}</p>
+          </div>
+          <button class="cart-item-remove" data-order-id="${order.id}" type="button">Remove</button>
+        </div>
+      `).join('');
+      // add remove button handlers
+      cartFlyoutBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const orderId = parseInt(e.target.dataset.orderId);
+          const filtered = orders.filter(o => o.id !== orderId);
+          localStorage.setItem('orders', JSON.stringify(filtered));
+          updateLoginUI(); // refresh cart count
+          renderCartItems(); // re-render
+        });
+      });
+    }
+  } catch (e) { /* ignore */ }
