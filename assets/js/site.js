@@ -453,7 +453,7 @@ document.querySelectorAll('nav.site-nav ul a')
   });
 
   // Handle login form submission
-  loginForm.addEventListener('submit', e => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const password = loginPassword.value;
 
@@ -461,7 +461,20 @@ document.querySelectorAll('nav.site-nav ul a')
       // Staff (member) login: full recipe access
       loginError.classList.add('is-hidden');
       localStorage.setItem('isStaff', 'true');
-      localStorage.setItem('staffToken', 'staff_1b4f0e9851971998e732078544c11c82591555c3');
+      // Get staff API token from auth endpoint
+      try {
+        const authResp = await fetch('https://streeter.cc/api/staff-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        if (authResp.ok) {
+          const authData = await authResp.json();
+          localStorage.setItem('staffToken', authData.token);
+        }
+      } catch (e) {
+        console.warn('Failed to get staff token:', e);
+      }
       updateLoginUI();
       loginOverlay.classList.remove('active');
       loginForm.reset();
