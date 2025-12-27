@@ -246,17 +246,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Disable button during submission
         submitOrder.disabled = true;
         
-        // Prepare order data
+        // Prepare order data (matching worker expectations)
         const orderData = {
-          name,
-          recipe: (mTitle && mTitle.textContent) || '',
-          isStaff,
+          drink: (mTitle && mTitle.textContent) || '',
+          qty: 1,
+          notes: `Customer: ${name}`,
           turnstileToken
         };
         
         try {
           // Send to Cloudflare Worker
-          const resp = await fetch('https://streeter-pos-discord.sticctape.workers.dev/', {
+          const resp = await fetch('https://streeter.cc/api/order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Success: store locally and update UI
           const existing = JSON.parse(localStorage.getItem('orders') || '[]');
-          existing.push({ id: Date.now(), name, recipe: orderData.recipe, ts: new Date().toISOString() });
+          existing.push({ id: Date.now(), name, recipe: orderData.drink, ts: new Date().toISOString() });
           localStorage.setItem('orders', JSON.stringify(existing));
           updateCartCount();
           
