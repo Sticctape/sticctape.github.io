@@ -230,17 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (orderError) orderError.classList.add('is-hidden');
         
-        // Get Turnstile token (only for customers, not staff)
-        if (!isStaff && !isLocalhost && typeof turnstile !== 'undefined') {
-          turnstileToken = turnstile.getResponse();
-          if (!turnstileToken) {
-            if (orderError) {
-              orderError.textContent = 'Please complete the Turnstile verification';
-              orderError.classList.remove('is-hidden');
-            }
-            return;
-          }
-        }
+        // TODO: Re-enable Turnstile token verification once worker is updated
+        // For now, send empty token to bypass Turnstile verification
+        let turnstileToken = '';
         
         // Disable button during submission
         submitOrder.disabled = true;
@@ -275,11 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Update global cooldown (only for customers) and close modal
           if (!isStaff) lastOrderTime = now;
-          
-          // Reset Turnstile
-          if (!isStaff && typeof turnstile !== 'undefined') {
-            turnstile.reset();
-          }
           
           resetModal();
         } catch (e) {
