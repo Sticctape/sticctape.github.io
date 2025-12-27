@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit order (with global 30s cooldown to prevent rapid repeats)
     if (submitOrder) {
-      submitOrder.addEventListener('click', () => {
+      submitOrder.addEventListener('click', async () => {
         // Check global cooldown (only for customers, not staff)
         const isStaff = localStorage.getItem('isStaff') === 'true';
         const now = Date.now();
@@ -230,19 +230,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (orderError) orderError.classList.add('is-hidden');
         
-        // store order locally
+        // Get Turnstile token (only for customers, not staff)
+        let turnstileToken = null;
+        if (!isStaff && typeof turnstile !== 'undefined') {
+          turnstileToken = turnstile.getResponse();
+          if (!turnstileToken) {
+            if (orderError) {
+              orderError.textContent = 'Please complete the Turnstile verification';
+              orderError.classList.remove('is-hidden');
+            }
+            return;
+          }
+        }
+        
+        // Disable button during submission
+        submitOrder.disabled = true;
+        
+        // Prepare order data
+        const orderData = {
+          name,
+          recipe: (mTitle && mTitle.textContent) || '',
+          isStaff,
+          turnstileToken
+        };
+        
         try {
+          // Send to Cloudflare Worker
+          const resp = await fetch('https://streeter-pos-discord.sticctape.workers.dev/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+          
+          if (!resp.ok) {
+            throw new Error(`Server error: ${resp.statusText}`);
+          }
+          
+          // Success: store locally and update UI
           const existing = JSON.parse(localStorage.getItem('orders') || '[]');
-          existing.push({ id: Date.now(), name, recipe: (mTitle && mTitle.textContent) || '', ts: new Date().toISOString() });
+          existing.push({ id: Date.now(), name, recipe: orderData.recipe, ts: new Date().toISOString() });
           localStorage.setItem('orders', JSON.stringify(existing));
-          updateCartCount(); // update badge immediately
-        } catch (e) { /* ignore */ }
-        
-        if (typeof showAuthBanner === 'function') showAuthBanner(`Order placed for ${name}`);
-        
-        // Update global cooldown (only for customers, not staff) and close modal
-        if (!isStaff) lastOrderTime = now;
-        resetModal();
+          updateCartCount();
+          
+          if (typeof showAuthBanner === 'function') showAuthBanner(`Order placed for ${name}`);
+          
+          // Update global cooldown (only for customers) and close modal
+          if (!isStaff) lastOrderTime = now;
+          
+          // Reset Turnstile
+          if (!isStaff && typeof turnstile !== 'undefined') {
+            turnstile.reset();
+          }
+          
+          resetModal();
+        } catch (e) {
+          console.error('Order submission error:', e);
+          if (orderError) {
+            orderError.textContent = `Error: ${e.message}`;
+            orderError.classList.remove('is-hidden');
+          }
+        } finally {
+          submitOrder.disabled = false;
+        }
       });
     }
 

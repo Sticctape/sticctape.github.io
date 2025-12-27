@@ -88,6 +88,9 @@
             <button id="cancelOrder" class="close-btn" type="button" style="flex:1;">Cancel</button>
             <button id="submitOrder" class="close-btn" type="button" style="flex:1;">Submit Order</button>
           </div>
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAACJP7kPqnBDe0DXr">
+
+          </div>
         </div>
   </div>
 </div>
@@ -128,6 +131,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
   <!-- temporary auth banner (controlled by JS) -->
   <div id="authBanner" class="auth-banner is-hidden" role="status" aria-live="polite">
@@ -135,5 +139,6 @@
   </div>
 
   <script src="assets/js/site.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
