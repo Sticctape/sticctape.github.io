@@ -177,6 +177,10 @@ input:checked + .toggle-slider:before {
   color: #ff6b6b;
   margin-bottom: 2rem;
 }
+
+.is-hidden {
+  display: none !important;
+}
 </style>
 </style>
 
@@ -214,7 +218,7 @@ input:checked + .toggle-slider:before {
 
 <script>
 // Staff orders dashboard logic
-let staffAutoRefresh = true;
+let staffAutoRefresh = false;
 let staffRefreshInterval = null;
 
 async function loadStaffOrders() {
@@ -223,6 +227,10 @@ async function loadStaffOrders() {
   const staffToken = localStorage.getItem('staffToken');
   
   try {
+    if (!staffToken) {
+      throw new Error("Not logged in - please log in on the main page first");
+    }
+    
     errorDiv.classList.add('is-hidden');
     const resp = await fetch('https://streeter.cc/api/all-orders', {
       headers: {
@@ -231,7 +239,7 @@ async function loadStaffOrders() {
     });
     
     if (!resp.ok) {
-      if (resp.status === 401) throw new Error("Unauthorized - invalid token");
+      if (resp.status === 401) throw new Error("Unauthorized - invalid token. Please log in again on the main page.");
       throw new Error(`Server error: ${resp.statusText}`);
     }
     
