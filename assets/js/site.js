@@ -2,10 +2,7 @@
    site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
-// STATIC PASSWORDS
-const STAFF_PASSWORD = 'iLoveCocktails'; // staff / members (full recipe access)
-const CUSTOMER_PASSWORD = 'OrderUp!';   // customers who can place orders
-
+// Passwords are validated server-side via /api/staff-auth and /api/customer-auth
 // Global cooldown tracking for order submissions
 let lastOrderTime = 0;
 const ORDER_COOLDOWN_MS = 60000; // 60 seconds
@@ -457,61 +454,69 @@ document.querySelectorAll('nav.site-nav ul a')
     e.preventDefault();
     const password = loginPassword.value;
 
-    if (password === STAFF_PASSWORD) {
-      // Staff (member) login: full recipe access
-      loginError.classList.add('is-hidden');
-      localStorage.setItem('isStaff', 'true');
-      // Get staff API token from auth endpoint
-      try {
-        const authResp = await fetch('https://streeter.cc/api/staff-auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password })
-        });
-        if (authResp.ok) {
-          const authData = await authResp.json();
-          localStorage.setItem('staffToken', authData.token);
-        }
-      } catch (e) {
-        console.warn('Failed to get staff token:', e);
+    try {
+      // Try staff login first
+      let authResp = await fetch('https://streeter.cc/api/staff-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      if (authResp.ok) {
+        // Staff authentication succeeded
+        loginError.classList.add('is-hidden');
+        const authData = await authResp.json();
+        localStorage.setItem('isStaff', 'true');
+        localStorage.setItem('staffToken', authData.token);
+        updateLoginUI();
+        loginOverlay.classList.remove('active');
+        loginForm.reset();
+        if (typeof showAuthBanner === 'function') showAuthBanner('Staff authentication');
+        // close mobile nav if it's open
+        try {
+          if (nav && nav.classList.contains('open')) {
+            nav.classList.remove('open');
+            document.body.classList.remove('menu-open');
+            if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
+          }
+        } catch (e) { /* silent */ }
+        return;
       }
-      updateLoginUI();
-      loginOverlay.classList.remove('active');
-      loginForm.reset();
-      if (typeof showAuthBanner === 'function') showAuthBanner('Staff authentication');
-      // close mobile nav if it's open (same behavior as selecting a page)
-      try {
-        if (nav && nav.classList.contains('open')) {
-          nav.classList.remove('open');
-          document.body.classList.remove('menu-open');
-          if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
-        }
-      } catch (e) { /* silent */ }
-    } else if (password === CUSTOMER_PASSWORD) {
-      // Customer login: enable ordering UI
-      loginError.classList.add('is-hidden');
-      localStorage.setItem('isCustomer', 'true');
-      // update UI immediately
-      updateLoginUI();
-      // reveal order button if modal is currently present
-      try {
-        const orderBtnNow = document.getElementById('orderBtn');
-        if (orderBtnNow) orderBtnNow.classList.remove('is-hidden');
-      } catch (e) {}
-      loginOverlay.classList.remove('active');
-      loginForm.reset();
-      if (typeof showAuthBanner === 'function') showAuthBanner('Customer mode enabled');
-      // close mobile nav if it's open (same behavior as selecting a page)
-      try {
-        if (nav && nav.classList.contains('open')) {
-          nav.classList.remove('open');
-          document.body.classList.remove('menu-open');
-          if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
-        }
-      } catch (e) { /* silent */ }
-    } else {
-      // Login failed
+
+      // Try customer login
+      authResp = await fetch('https://streeter.cc/api/customer-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      if (authResp.ok) {
+        // Customer authentication succeeded
+        loginError.classList.add('is-hidden');
+        const authData = await authResp.json();
+        localStorage.setItem('isCustomer', 'true');
+        localStorage.setItem('customerToken', authData.token);
+        updateLoginUI();
+        loginOverlay.classList.remove('active');
+        loginForm.reset();
+        if (typeof showAuthBanner === 'function') showAuthBanner('Customer mode enabled');
+        // close mobile nav if it's open
+        try {
+          if (nav && nav.classList.contains('open')) {
+            nav.classList.remove('open');
+            document.body.classList.remove('menu-open');
+            if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
+          }
+        } catch (e) { /* silent */ }
+        return;
+      }
+
+      // Both authentication attempts failed
       loginError.textContent = 'Incorrect password';
+      loginError.classList.remove('is-hidden');
+    } catch (err) {
+      console.error('Authentication error:', err);
+      loginError.textContent = 'Authentication error. Please try again.';
       loginError.classList.remove('is-hidden');
     }
   });
@@ -561,6 +566,7 @@ document.querySelectorAll('nav.site-nav ul a')
     localStorage.removeItem('isStaff');
     localStorage.removeItem('isCustomer');
     localStorage.removeItem('staffToken');
+    localStorage.removeItem('customerToken');
     updateLoginUI();
   });
 
