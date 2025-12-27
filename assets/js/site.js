@@ -16,10 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadPage(id) {
     try {
+      // Cleanup previous page if it had cleanup function
+      if (window.cleanupStaffOrders && typeof window.cleanupStaffOrders === 'function') {
+        window.cleanupStaffOrders();
+      }
+      
       const resp = await fetch(`pages/${id}.html`);
       if (!resp.ok) throw new Error(`404 for ${id}.html`);
       content.innerHTML = await resp.text();
       if (id === 'cocktails') initCocktailModals();
+      
       // Re-execute scripts in loaded content
       const scripts = content.querySelectorAll('script');
       scripts.forEach(script => {
@@ -27,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
         newScript.textContent = script.textContent;
         script.parentNode.replaceChild(newScript, script);
       });
+      
+      // For staff-orders page, ensure the initial load happens
+      if (id === 'staff-orders' && typeof window.loadStaffOrders === 'function') {
+        setTimeout(() => {
+          window.loadStaffOrders();
+        }, 0);
+      }
     } catch (err) {
       content.innerHTML = `<p style="color:#f55">Failed to load page: ${err}</p>`;
     }
@@ -155,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
           mInstr.innerHTML = instr
                                 .replace(/(?:\r\n|\r|\n)/g, '<br>');
         } else {
-          mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Login to view detailed measurements and instructions.</p>';
+          mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Contact me to view detailed measurements and instructions.</p>';
         }
 
         // show/hide order button for customers and staff
@@ -182,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         if (modalEl) modalEl.classList.remove('show-order');
         if (orderName) orderName.value = '';
+        const orderNotes = document.getElementById('orderNotes');
+        if (orderNotes) orderNotes.value = '';
+        const noteCount = document.getElementById('noteCount');
+        if (noteCount) noteCount.textContent = '0/120';
         if (orderError) orderError.classList.add('is-hidden');
         if (submitOrder) { submitOrder.disabled = false; submitOrder.textContent = 'Submit Order'; }
       } catch (e) { /* ignore */ }
@@ -211,9 +228,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Character counter for notes field
+    const orderNotes = document.getElementById('orderNotes');
+    const noteCount = document.getElementById('noteCount');
+    if (orderNotes && noteCount) {
+      orderNotes.addEventListener('input', () => {
+        noteCount.textContent = `${orderNotes.value.length}/120`;
+      });
+    }
     // Submit order (with global 30s cooldown to prevent rapid repeats)
     if (submitOrder) {
-      submitOrder.addEventListener('click', async () => {
+      // Clone to remove any old listeners
+      const newSubmitOrder = submitOrder.cloneNode(true);
+      submitOrder.parentNode.replaceChild(newSubmitOrder, submitOrder);
+      
+      newSubmitOrder.addEventListener('click', async () => {
         // Check global cooldown (only for customers, not staff)
         const isStaff = localStorage.getItem('isStaff') === 'true';
         const now = Date.now();
@@ -229,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = (orderName && orderName.value || '').trim();
         if (!name) {
           if (orderError) {
-            orderError.textContent = 'Please enter a name';
+            orderError.textContent = 'Please enter a name for the order';
             orderError.classList.remove('is-hidden');
           }
           return;
@@ -237,14 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (orderError) orderError.classList.add('is-hidden');
         
         // Disable button during submission
-        submitOrder.disabled = true;
+        newSubmitOrder.disabled = true;
         
         // Prepare order data (matching worker expectations)
+        const orderNotes = document.getElementById('orderNotes');
         const orderData = {
           name,
           drink: (mTitle && mTitle.textContent) || '',
           qty: 1,
-          notes: ''
+          notes: (orderNotes && orderNotes.value || '').trim()
         };
         
         try {
@@ -290,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
             orderError.classList.remove('is-hidden');
           }
         } finally {
-          submitOrder.disabled = false;
+          newSubmitOrder.disabled = false;
         }
       });
     }
@@ -307,11 +337,30 @@ document.addEventListener('DOMContentLoaded', () => {
 // Helper: update cart count badge from localStorage
 function updateCartCount() {
   try {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const count = orders.length;
+    
+    // Update desktop cart count
     const cartCount = document.getElementById('cartCount');
     if (cartCount) {
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      cartCount.textContent = orders.length ? String(orders.length) : '0';
+      if (count === 0) {
+        cartCount.classList.add('is-hidden');
+      } else {
+        cartCount.classList.remove('is-hidden');
+        cartCount.textContent = String(count);
+      }
     }
+    
+    // Update mobile cart count
+    const mobileCartBadges = document.querySelectorAll('.nav-cart-mobile .cart-count');
+    mobileCartBadges.forEach(badge => {
+      if (count === 0) {
+        badge.classList.add('is-hidden');
+      } else {
+        badge.classList.remove('is-hidden');
+        badge.textContent = String(count);
+      }
+    });
   } catch (e) { /* ignore */ }
 }
 
@@ -323,31 +372,49 @@ async function pollOrderStatuses() {
     return;
   }
 
+  let statusesChanged = false;
+  const ordersToKeep = [];
+
   for (const order of orders) {
     try {
       const resp = await fetch(`https://streeter.cc/api/orders/${order.id}`);
       if (resp.ok) {
         const data = await resp.json();
-        order.status = data.status;
+        if (order.status !== data.status) {
+          order.status = data.status;
+          statusesChanged = true;
+        }
+        ordersToKeep.push(order);
+      } else {
+        // Order no longer exists on server (404 or other error), remove from cart
+        console.log(`Order ${order.id} no longer exists, removing from cart`);
+        statusesChanged = true;
       }
     } catch (e) {
       console.warn(`Failed to fetch status for order ${order.id}:`, e);
+      // On network error, keep the order (it might be a temporary issue)
+      ordersToKeep.push(order);
     }
   }
 
-  localStorage.setItem('orders', JSON.stringify(orders));
-  
-  // Re-render cart if it's open
-  const cartFlyoutBody = document.getElementById('cartFlyoutBody');
-  if (cartFlyoutBody && document.getElementById('cartFlyout').classList.contains('show')) {
-    renderCartItems();
+  // Only save and re-render if something actually changed
+  if (statusesChanged) {
+    localStorage.setItem('orders', JSON.stringify(ordersToKeep));
+    updateCartCount();
+    
+    // Re-render cart if it's open (and show banner if status changed)
+    const cartFlyoutBody = document.getElementById('cartFlyoutBody');
+    const cartFlyout = document.getElementById('cartFlyout');
+    if (cartFlyoutBody && cartFlyout && cartFlyout.classList.contains('show')) {
+      renderCartItems();
+    }
   }
 }
 
 function startStatusPolling() {
   if (statusPollingInterval) return; // Already polling
   
-  statusPollingInterval = setInterval(pollOrderStatuses, 10000); // Poll every 10 seconds
+  statusPollingInterval = setInterval(pollOrderStatuses, 30000); // Poll every 30 seconds
   pollOrderStatuses(); // Initial poll immediately
 }
 
@@ -396,12 +463,43 @@ function renderCartItems() {
       const confirmYesBtn = document.getElementById('confirmYesBtn');
       const confirmNoBtn = document.getElementById('confirmNoBtn');
       
-      const handleConfirm = () => {
-        const filtered = orders.filter(o => o.id !== orderId);
-        localStorage.setItem('orders', JSON.stringify(filtered));
-        updateLoginUI(); // refresh cart count
-        renderCartItems(); // re-render
-        closeConfirmModal();
+      const handleConfirm = async () => {
+        try {
+          // Delete order from CF container
+          console.log('Attempting to delete order:', orderId);
+          const response = await fetch(`https://streeter.cc/api/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log('Delete response status:', response.status, response.statusText);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Failed to delete order from server:', response.status, errorText);
+            // Still delete from local cart even if server delete fails
+            const filtered = orders.filter(o => o.id !== orderId);
+            localStorage.setItem('orders', JSON.stringify(filtered));
+            updateLoginUI();
+            renderCartItems();
+            closeConfirmModal();
+            return;
+          }
+          
+          const result = await response.json();
+          console.log('Delete success:', result);
+          
+          // Remove from local cart
+          const filtered = orders.filter(o => o.id !== orderId);
+          localStorage.setItem('orders', JSON.stringify(filtered));
+          updateLoginUI(); // refresh cart count
+          renderCartItems(); // re-render
+          closeConfirmModal();
+        } catch (error) {
+          console.error('Error deleting order:', error);
+        }
       };
       
       const handleCancel = () => {
@@ -432,6 +530,16 @@ function renderCartItems() {
     const isOpen = nav.classList.toggle('open');
     toggle.setAttribute('aria-expanded', isOpen);
   document.body.classList.toggle('menu-open', isOpen);
+  });
+
+  // Close menu when overlay is clicked
+  nav.addEventListener('click', (e) => {
+    // If clicking the overlay (the ::after pseudo-element appears as a click on nav with nothing underneath)
+    if (e.target === nav && nav.classList.contains('open')) {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', false);
+      document.body.classList.remove('menu-open');
+    }
   });
 
   const obs = new IntersectionObserver(
@@ -570,8 +678,10 @@ document.querySelectorAll('nav.site-nav ul a')
 
     // show cart for customers and staff, update count
     try {
-      const cartWrap = document.getElementById('navCartWrap');
+      const cartWrap = document.getElementById('navCartWrap'); // Desktop
+      const cartWrapMobile = document.getElementById('navCartWrapMobile'); // Mobile
       if (cartWrap) cartWrap.classList.toggle('is-hidden', !(isCustomer || isStaff));
+      if (cartWrapMobile) cartWrapMobile.classList.toggle('is-hidden', !(isCustomer || isStaff));
       updateCartCount(); // use helper to update badge
     } catch (e) { /* ignore */ }
   }
@@ -608,23 +718,31 @@ document.querySelectorAll('nav.site-nav ul a')
 
   // Nav cart click behavior (placeholder: shows summary banner)
   try {
-    const navCartWrap = document.getElementById('navCartWrap');
+    const navCartWrap = document.getElementById('navCartWrap'); // Desktop cart
+    const navCartWrapMobile = document.getElementById('navCartWrapMobile'); // Mobile cart
     const cartCountEl = document.getElementById('cartCount');
     const cartFlyout = document.getElementById('cartFlyout');
     const cartFlyoutOverlay = document.getElementById('cartFlyoutOverlay');
     const cartFlyoutBody = document.getElementById('cartFlyoutBody');
     const closeCartBtn = document.getElementById('closeCartBtn');
 
-    // Open cart flyout
+    // Function to open cart flyout
+    const openCart = () => {
+      cartFlyout.classList.remove('is-hidden');
+      cartFlyout.classList.add('show');
+      cartFlyoutOverlay.classList.remove('is-hidden');
+      cartFlyoutOverlay.classList.add('show');
+      renderCartItems();
+      // Ensure polling is running whenever cart is open
+      startStatusPolling();
+    };
+
+    // Open cart flyout - both desktop and mobile cart icons
     if (navCartWrap && cartFlyout && cartFlyoutOverlay) {
-      navCartWrap.addEventListener('click', () => {
-        cartFlyout.classList.remove('is-hidden');
-        cartFlyout.classList.add('show');
-        cartFlyoutOverlay.classList.remove('is-hidden');
-        cartFlyoutOverlay.classList.add('show');
-        // populate cart items
-        renderCartItems();
-      });
+      navCartWrap.addEventListener('click', openCart);
+    }
+    if (navCartWrapMobile && cartFlyout && cartFlyoutOverlay) {
+      navCartWrapMobile.addEventListener('click', openCart);
     }
 
     // Close cart flyout
@@ -637,5 +755,14 @@ document.querySelectorAll('nav.site-nav ul a')
     };
     if (closeCartBtn) closeCartBtn.addEventListener('click', closeCartPanel);
     if (cartFlyoutOverlay) cartFlyoutOverlay.addEventListener('click', closeCartPanel);
+
+    // Refresh status button
+    const refreshStatusBtn = document.getElementById('refreshStatusBtn');
+    if (refreshStatusBtn) {
+      refreshStatusBtn.addEventListener('click', async () => {
+        await pollOrderStatuses();
+        renderCartItems();
+      });
+    }
 
   } catch (e) { /* ignore */ }

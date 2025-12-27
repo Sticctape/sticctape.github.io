@@ -30,22 +30,33 @@
     <button class="nav-toggle" aria-expanded="false" aria-label="Menu">
         <span class="burger"></span>
     </button>
-    <ul>
-      <li><a href="about"     data-section="about"     class="active">About</a></li>
-      <li><a href="features"  data-section="features">Features</a></li>
-      <li><a href="cocktails" data-section="cocktails">Cocktails</a></li>
-      <li><a href="contact"   data-section="contact">Contact</a></li>
-      <li><a href="staff-orders" data-section="staff-orders" class="nav-staff-link is-hidden">Orders</a></li>
-      <li class="nav-auth">
-        <button id="navLoginBtn" class="nav-login-btn" type="button">Login</button>
-        <button id="navLogoutBtn" class="nav-login-btn is-hidden" type="button">Logout</button>
-      </li>
-    </ul>
-    <!-- cart (shown for customers) -->
-    <div id="navCartWrap" class="nav-cart-wrap is-hidden" aria-hidden="true">
-      <img id="navCart" class="nav-cart" src="assets/cart.png" alt="Cart">
-      <span id="cartCount" class="cart-count">0</span>
+    
+    <!-- Mobile cart (in static navbar) -->
+    <div id="navCartWrapMobile" class="nav-cart-wrap nav-cart-mobile is-hidden" aria-hidden="true">
+      <img class="nav-cart" src="assets/cart.png" alt="Cart">
+      <span class="cart-count">0</span>
     </div>
+    
+    <!-- Centered nav items wrapper -->
+    <div class="nav-center">
+      <ul>
+        <li><a href="about"     data-section="about"     class="active">About</a></li>
+        <li><a href="features"  data-section="features">Features</a></li>
+        <li><a href="contact"   data-section="contact">Contact</a></li>
+        <li><a href="cocktails" data-section="cocktails">Cocktails</a></li>
+        <li><a href="staff-orders" data-section="staff-orders" class="nav-staff-link is-hidden">Orders</a></li>
+        <li class="nav-auth">
+          <button id="navLoginBtn" class="nav-login-btn" type="button">Login</button>
+          <button id="navLogoutBtn" class="nav-login-btn is-hidden" type="button">Logout</button>
+        </li>
+        <!-- Desktop cart (in pill) -->
+        <li id="navCartWrap" class="nav-cart-wrap nav-cart-desktop is-hidden" aria-hidden="true">
+          <img id="navCart" class="nav-cart" src="assets/cart.png" alt="Cart">
+          <span id="cartCount" class="cart-count">0</span>
+        </li>
+      </ul>
+    </div>
+  </nav>
   </nav>
 
   <!-- LOGO & DIVIDER (shown only on Cocktails) -->
@@ -84,6 +95,9 @@
           <h3 style="margin-top:0;">Place Order</h3>
           <p style="opacity:.85;">Enter the name for this order:</p>
           <input id="orderName" type="text" placeholder="Name" style="width:100%;margin:12px 0;padding:.5rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;">
+          <p style="opacity:.85;margin-top:12px;">Notes:</p>
+          <textarea id="orderNotes" placeholder="Notes" maxlength="120" style="width:100%;margin:8px 0;padding:.5rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;resize:vertical;height:60px;font-family:inherit;"></textarea>
+          <p id="noteCount" style="opacity:.6;font-size:.85rem;margin:4px 0 0;text-align:right;">0/120</p>
           <p id="orderError" class="is-hidden" style="color:#f55;margin:0 0 8px;font-size:.9rem"></p>
           <div style="display:flex;gap:8px;width:100%;">
             <button id="cancelOrder" class="close-btn" type="button" style="flex:1;">Cancel</button>
@@ -116,7 +130,10 @@
 <div class="cart-flyout is-hidden" id="cartFlyout" aria-hidden="true">
   <div class="cart-flyout-header">
     <h3 style="margin:0;">Your Orders</h3>
-    <button id="closeCartBtn" class="close-btn" type="button" style="padding:.3rem .8rem;font-size:.85rem;">Close</button>
+    <div style="display:flex;gap:8px;">
+      <button id="refreshStatusBtn" class="close-btn" type="button" style="padding:.3rem .8rem;font-size:.85rem;">Refresh Status</button>
+      <button id="closeCartBtn" class="close-btn" type="button" style="padding:.3rem .8rem;font-size:.85rem;">Close</button>
+    </div>
   </div>
   <div class="cart-flyout-body" id="cartFlyoutBody">
     <!-- orders rendered here -->
