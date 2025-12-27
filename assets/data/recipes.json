@@ -205,6 +205,28 @@
       "full": "1.5 oz Plantaray O.F.T.D Overproof Rum\n0.5 oz Smith & Cross Jamaican Rum\n4 oz Pineapple Juice\n0.75 oz Orange Juice\n1 oz Coconut Cream\n0.25 oz Lime Juice",
       "clean": "Plataray O.F.T.D Overproof Rum\nSmith & Cross Jamaican Rum\nPineapple Juice\nOrange Juice\nCoconut Cream\nLime Juice",
       "instructions": "Shake all ingredients with ice and strain into a tall glass filled with crushed ice.\nGarnish with freshly grated nutmeg. Optionally add an orange wedge or pineapple frond."
+    },
+    "woodward-avenue": {
+      "category": "the-essentials",
+      "name": "Woodward Avenue",
+      "img": "assets/glasses/woodwardave.png",
+      "ingredients": "Bourbon | Chartreuse | Lemon | Simple | Angostura",
+      "taste": "Sweet • Dry",
+      "full": "2 oz Woodford Reserve Bourbon\n0.5 oz Green Chartreuse\n0.75 oz Lemon Juice\n0.5 oz Simple Syrup\n2 Dashes Angostura Bitters",
+      "clean": "Woodford Reserve Bourbon\nGreen Chartreuse\nLemon Juice\nSimple Syrup\nAngostura Bitters",
+      "instructions": "Shake all ingredients with ice and strain into a coupe glass.\nGarnish with a lemon twist."
+    },
+    "painkiller2": {
+      "category": "the-essentials",
+      "name": "Painkiller",
+      "img": "assets/glasses/painkiller.png",
+      "ingredients": "Rum | Pineapple | Orange | Coconut | Lime | Nutmeg",
+      "taste": "Sweet • Tropical",
+      "full": "1.5 oz Plantaray O.F.T.D Overproof Rum\n0.5 oz Smith & Cross Jamaican Rum\n4 oz Pineapple Juice\n0.75 oz Orange Juice\n1 oz Coconut Cream\n0.25 oz Lime Juice",
+      "clean": "Plataray O.F.T.D Overproof Rum\nSmith & Cross Jamaican Rum\nPineapple Juice\nOrange Juice\nCoconut Cream\nLime Juice",
+      "instructions": "Shake all ingredients with ice and strain into a tall glass filled with crushed ice.\nGarnish with freshly grated nutmeg. Optionally add an orange wedge or pineapple frond."
     }
   }
 }
+
+
