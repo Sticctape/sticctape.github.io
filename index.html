@@ -123,6 +123,18 @@
   </div>
 </div>
 
+<!-- Confirmation modal for removing orders -->
+<div class="modal-overlay is-hidden" id="confirmRemovalOverlay" aria-hidden="true">
+  <div class="modal" style="width: auto; max-width: 400px;">
+    <h3 style="margin-top:0; margin-bottom: 1rem;">Confirm Removal</h3>
+    <p id="confirmMessage" style="margin-bottom: 1.5rem; line-height: 1.5;"></p>
+    <div style="display:flex;gap:10px;">
+      <button id="confirmYesBtn" class="close-btn" style="flex:1;">Yes, Remove</button>
+      <button id="confirmNoBtn" class="close-btn" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- overlay behind cart flyout (click to close) -->
 <div class="cart-flyout-overlay is-hidden" id="cartFlyoutOverlay" aria-hidden="true"></div>
 

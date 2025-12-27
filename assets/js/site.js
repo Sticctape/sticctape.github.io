@@ -2,7 +2,6 @@
    site.js – unified History API SPA logic
    ------------------------------------------------------------------ */
 
-// Passwords are validated server-side via /api/staff-auth and /api/customer-auth
 // Global cooldown tracking for order submissions
 let lastOrderTime = 0;
 const ORDER_COOLDOWN_MS = 60000; // 60 seconds
@@ -383,10 +382,44 @@ function renderCartItems() {
   cartFlyoutBody.querySelectorAll('.cart-item-remove').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const orderId = e.target.dataset.orderId;
-      const filtered = orders.filter(o => o.id !== orderId);
-      localStorage.setItem('orders', JSON.stringify(filtered));
-      updateLoginUI(); // refresh cart count
-      renderCartItems(); // re-render
+      const orderToRemove = orders.find(o => o.id === orderId);
+      
+      // Show custom confirmation modal
+      const confirmMsg = document.getElementById('confirmMessage');
+      confirmMsg.textContent = `Are you sure? Removing "${orderToRemove.recipe}" from your cart will remove it from the Order Queue.`;
+      
+      const overlay = document.getElementById('confirmRemovalOverlay');
+      overlay.classList.remove('is-hidden');
+      overlay.classList.add('active');
+      
+      // Handle confirm button
+      const confirmYesBtn = document.getElementById('confirmYesBtn');
+      const confirmNoBtn = document.getElementById('confirmNoBtn');
+      
+      const handleConfirm = () => {
+        const filtered = orders.filter(o => o.id !== orderId);
+        localStorage.setItem('orders', JSON.stringify(filtered));
+        updateLoginUI(); // refresh cart count
+        renderCartItems(); // re-render
+        closeConfirmModal();
+      };
+      
+      const handleCancel = () => {
+        closeConfirmModal();
+      };
+      
+      const closeConfirmModal = () => {
+        overlay.classList.add('is-hidden');
+        overlay.classList.remove('active');
+        confirmYesBtn.removeEventListener('click', handleConfirm);
+        confirmNoBtn.removeEventListener('click', handleCancel);
+      };
+      
+      confirmYesBtn.addEventListener('click', handleConfirm);
+      confirmNoBtn.addEventListener('click', handleCancel);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) handleCancel();
+      });
     });
   });
 }
