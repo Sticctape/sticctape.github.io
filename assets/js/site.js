@@ -35,10 +35,28 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       // For staff-orders page, ensure the initial load happens
-      if (id === 'staff-orders' && typeof window.loadStaffOrders === 'function') {
-        setTimeout(() => {
-          window.loadStaffOrders();
-        }, 0);
+      if (id === 'staff-orders') {
+        // Re-setup filters and load orders
+        if (typeof window.setupFilterButtons === 'function') {
+          setTimeout(() => {
+            window.setupFilterButtons();
+          }, 0);
+        }
+        if (typeof window.setupResetButton === 'function') {
+          setTimeout(() => {
+            window.setupResetButton();
+          }, 0);
+        }
+        if (typeof window.setupDeletePickedUpButton === 'function') {
+          setTimeout(() => {
+            window.setupDeletePickedUpButton();
+          }, 0);
+        }
+        if (typeof window.loadStaffOrders === 'function') {
+          setTimeout(() => {
+            window.loadStaffOrders();
+          }, 0);
+        }
       }
     } catch (err) {
       content.innerHTML = `<p style="color:#f55">Failed to load page: ${err}</p>`;

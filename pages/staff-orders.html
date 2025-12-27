@@ -19,6 +19,7 @@
     <button class="filter-btn active" data-filter="Ready">Ready</button>
     <button class="filter-btn active" data-filter="Picked Up">Picked Up</button>
     <button class="filter-reset-btn" id="filterResetBtn">Reset Filters</button>
+    <button class="filter-reset-btn" id="deletePickedUpBtn" style="background: rgba(255, 85, 85, 0.15); border-color: rgba(255, 85, 85, 0.3); color: #ff5555;">Delete All Picked Up</button>
   </div>
   
   <table class="staff-orders-table" id="staffOrdersTable">
@@ -247,6 +248,54 @@ async function deleteStaffOrder(orderId) {
   }
 }
 
+async function deleteAllPickedUp() {
+  // Reset controller if it was aborted
+  if (staffOrdersController.signal.aborted) {
+    staffOrdersController = window.staffOrdersController = new AbortController();
+  }
+  
+  const staffToken = localStorage.getItem('staffToken');
+  const pickedUpOrders = allOrders.filter(order => order.status === 'Picked Up');
+  
+  if (pickedUpOrders.length === 0) {
+    const errorDiv = document.getElementById('staffError');
+    if (errorDiv && document.body.contains(errorDiv)) {
+      errorDiv.textContent = 'No picked up orders to delete';
+      errorDiv.classList.remove('is-hidden');
+    }
+    return;
+  }
+  
+  try {
+    // Delete each picked up order
+    for (const order of pickedUpOrders) {
+      const resp = await fetch(`https://streeter.cc/api/orders/${order.orderId}`, {
+        method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Staff-Token': staffToken
+        },
+        signal: staffOrdersController.signal
+      });
+      
+      if (!resp.ok) {
+        throw new Error(`Failed to delete order ${order.orderId}`);
+      }
+    }
+    
+    // Reload table after successful deletion
+    await loadStaffOrders();
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    
+    const errorDiv = document.getElementById('staffError');
+    if (errorDiv && document.body.contains(errorDiv)) {
+      errorDiv.textContent = `Error deleting picked up orders: ${err.message}`;
+      errorDiv.classList.remove('is-hidden');
+    }
+  }
+}
+
 function startStaffAutoRefresh() {
   if (staffRefreshInterval) clearInterval(staffRefreshInterval);
   staffRefreshInterval = setInterval(loadStaffOrders, 10000); // Refresh every 10 seconds
@@ -275,7 +324,9 @@ function cleanupStaffOrders() {
 }
 
 function setupFilterButtons() {
-  const filterBtns = document.querySelectorAll('.filter-btn');
+  // Convert NodeList to Array to avoid iteration issues when replacing
+  const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
+  
   filterBtns.forEach(btn => {
     // Clone to remove old listeners
     const newBtn = btn.cloneNode(true);
@@ -333,14 +384,28 @@ function setupResetButton() {
   }
 }
 
-// Setup filter buttons
-setupFilterButtons();
-setupResetButton();
-
-// Re-render with current filter state to ensure display is synced
-if (allOrders.length > 0) {
-  renderFilteredOrders();
+function setupDeletePickedUpButton() {
+  const deleteBtn = document.getElementById('deletePickedUpBtn');
+  if (deleteBtn) {
+    // Clone to remove old listeners
+    const newDeleteBtn = deleteBtn.cloneNode(true);
+    deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+    
+    newDeleteBtn.addEventListener('click', async () => {
+      await deleteAllPickedUp();
+    });
+  }
 }
+
+// Setup filter buttons with a small delay to ensure DOM is ready
+setTimeout(() => {
+  setupFilterButtons();
+  setupResetButton();
+  setupDeletePickedUpButton();
+}, 0);
+
+// Initial load - fetch orders and render
+loadStaffOrders();
 
 // Toggle auto-refresh
 const autoRefreshToggle = document.getElementById('autoRefreshToggle');
@@ -357,10 +422,6 @@ if (autoRefreshToggle) {
     }
   });
 }
-
-// Initial load
-loadStaffOrders();
-// Don't auto-refresh by default - user must toggle it on
 
 // Hook into navigation to clean up when leaving this page
 // Store cleanup function on window so main site.js can call it
