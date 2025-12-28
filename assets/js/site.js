@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initCocktailModals() {
     const cards    = document.querySelectorAll('.cocktail-card');
     const overlay  = document.getElementById('modalOverlay');
-    const mImg     = document.getElementById('modalImg');
+    let mImg       = document.getElementById('modalImg');
     const mTitle   = document.getElementById('modalTitle');
     const mIng     = document.getElementById('modalIngredients');
     const mInstr   = document.getElementById('modalInstructions');
@@ -201,6 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     // Toggle image expansion on click
+    // Clone the image element to reset any stacked listeners from previous page loads
+    const newMImg = mImg.cloneNode(true);
+    mImg.parentNode.replaceChild(newMImg, mImg);
+    mImg = newMImg; // Update reference to the cloned element
     mImg.addEventListener('click', (e) => {
       e.stopPropagation();
       console.log('Image clicked, toggling expanded class');

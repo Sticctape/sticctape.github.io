@@ -215,6 +215,16 @@
       "full": "2 oz Woodford Reserve Bourbon\n0.5 oz Green Chartreuse\n0.75 oz Lemon Juice\n0.5 oz Simple Syrup\n2 Dashes Angostura Bitters",
       "clean": "Woodford Reserve Bourbon\nGreen Chartreuse\nLemon Juice\nSimple Syrup\nAngostura Bitters",
       "instructions": "Shake all ingredients with ice and strain into a coupe glass.\nGarnish with a lemon twist."
+    },
+    "woodward-avenue": {
+      "category": "the-essentials",
+      "name": "Woodward Avenue",
+      "img": "assets/glasses/woodwardave.png",
+      "ingredients": "Bourbon | Chartreuse | Lemon | Simple | Angostura",
+      "taste": "Sweet • Dry",
+      "full": "2 oz Woodford Reserve Bourbon\n0.5 oz Green Chartreuse\n0.75 oz Lemon Juice\n0.5 oz Simple Syrup\n2 Dashes Angostura Bitters",
+      "clean": "Woodford Reserve Bourbon\nGreen Chartreuse\nLemon Juice\nSimple Syrup\nAngostura Bitters",
+      "instructions": "Shake all ingredients with ice and strain into a coupe glass.\nGarnish with a lemon twist."
     }
   }
 }

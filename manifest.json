@@ -1,7 +1,7 @@
 {
-  "name": "The Streeters",
-  "short_name": "Streeters",
-  "description": "Order premium cocktails from The Streeters with real-time order tracking",
+  "name": "The Streeter's Distillery",
+  "short_name": "Streeter's Distillery",
+  "description": "Order premium cocktails from The Streeters",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
