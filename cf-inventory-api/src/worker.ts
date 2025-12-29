@@ -124,13 +124,26 @@ async function getOwnerId(req: Request, env: Env): Promise<string | null> {
 
 // Check if a staff token is valid. Returns true if valid, false otherwise.
 // Staff tokens grant READ access to inventory but are NOT owner identity.
-function isValidStaffToken(req: Request): boolean {
+async function isValidStaffToken(req: Request, env: Env): Promise<boolean> {
   const auth = req.headers.get('authorization');
   if (auth && auth.toLowerCase().startsWith('bearer ')) {
     const token = auth.slice(7).trim();
-    if (token && token.startsWith('staff_')) {
-      // This is a staff token. In production, verify the token signature and expiry.
+    if (!token) return false;
+    
+    // Support two token formats:
+    // 1. Legacy: simple "staff_" prefix (for backwards compatibility)
+    // 2. JWT: signed JWT token where sub='staff'
+    if (token.startsWith('staff_')) {
       return true;
+    }
+    
+    // Try to verify as JWT
+    try {
+      const sub = await verifyJWT(token, env);
+      return sub === 'staff';
+    } catch (e) {
+      // Not a valid JWT, not a staff_ token
+      return false;
     }
   }
   return false;
@@ -348,7 +361,7 @@ export default {
       const ownerId = await getOwnerId(request, env);
       
       // Check staff permissions (Bearer token)
-      const isStaff = isValidStaffToken(request);
+      const isStaff = await isValidStaffToken(request, env);
       
       // Auth check endpoint - returns whether user is authenticated and their role
       if (request.method === 'GET' && path.endsWith('/api/auth/check')) {
