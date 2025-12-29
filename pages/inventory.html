@@ -284,16 +284,17 @@
           return;
         }
       
+      console.log('🔵 Not local dev, fetching from API...');
       const resp = await fetch(`${API_BASE}/bottles`);
+      console.log('🔵 API response status:', resp.status);
       
       if (resp.ok) {
+        console.log('✅ API call successful - user has CF Access');
         isOwner = true;
         addBottleBtn.classList.remove('is-hidden');
         addBottlePrompt.classList.remove('is-hidden');
       } else if (resp.status === 401 || resp.status === 403) {
-        isOwner = false;
-        addBottleBtn.classList.add('is-hidden');
-        addBottlePrompt.classList.add('is-hidden');
+        console.log('⛔ API returned', resp.status, '- no CF Access, read-only mode');
       } else {
         throw new Error(`Failed to load bottles: ${resp.statusText}`);
       }
