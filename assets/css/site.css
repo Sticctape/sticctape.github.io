@@ -443,6 +443,17 @@ h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
 .modal.show-order .modal-main{transform:translateX(-100%)}
 .modal.show-order .order-panel{transform:translateX(0);pointer-events:auto; /* enable when visible */}
 
+/* Inventory image preview modal: maximize image area */
+.image-preview-modal{max-width:min(1000px,95vw)}
+.image-preview-modal .modal-body{padding:1rem;display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;align-items:center}
+.image-preview-modal .preview-details{text-align:left}
+.image-preview-modal .preview-details h3{margin:0 0 .75rem}
+.image-preview-modal .preview-fields{list-style:none;margin:0 0 .75rem;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem}
+.image-preview-modal .preview-fields li{opacity:.9}
+.image-preview-modal .preview-notes{opacity:.85}
+.image-preview-modal .preview-image-wrap{display:flex;align-items:center;justify-content:center}
+.image-preview-modal img{max-width:100%;max-height:80vh;width:auto;height:auto;object-fit:contain;margin:0;filter:none}
+
 /* ─────────────────────────  CONFIRMATION MODAL  ─────────────────────── */
 #confirmRemovalOverlay{z-index:100}
 #confirmRemovalOverlay .modal{max-width:380px;text-align:left}
@@ -877,6 +888,12 @@ input:checked + .toggle-slider:before {
   display: block;
 }
 
+/* Slightly larger placeholders for spirit types */
+.bottle-card img.placeholder-img {
+  width: 96px;
+  height: 192px;
+}
+
 .bottle-card h3 {
   font-size: 1.1rem;
   font-weight: 600;
@@ -1137,6 +1154,14 @@ input:checked + .toggle-slider:before {
     width: 60px;
     height: 120px;
   }
+
+  .bottle-card img.placeholder-img {
+    width: 72px;
+    height: 144px;
+  }
+
+  /* Preview modal single-column on mobile */
+  .image-preview-modal .modal-body{grid-template-columns:1fr}
   
   .inventory-search-row {
     flex-direction: column;

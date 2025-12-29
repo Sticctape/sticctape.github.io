@@ -37,12 +37,14 @@
         <div class="filter-pills" id="mixerFilters">
           <button class="filter-pill active" data-mixer="all">All</button>
           <button class="filter-pill" data-mixer="liqueur">Liqueur</button>
+          <button class="filter-pill" data-mixer="coffeeliqueur">Coffee Liqueur</button>
           <button class="filter-pill" data-mixer="amaro">Amaro</button>
           <button class="filter-pill" data-mixer="vermouth">Vermouth</button>
           <button class="filter-pill" data-mixer="bitters">Bitters</button>
           <button class="filter-pill" data-mixer="syrup">Syrup</button>
           <button class="filter-pill" data-mixer="foam">Foam</button>
           <button class="filter-pill" data-mixer="cordial">Cordial</button>
+          <button class="filter-pill" data-mixer="other">Other</button>
         </div>
       </div>
     </div>
@@ -96,6 +98,7 @@
               <option value="brandy">Brandy</option>
               <option value="cognac">Cognac</option>
               <option value="liqueur">Liqueur</option>
+              <option value="coffeeliqueur">Coffee Liqueur</option>
               <option value="amaro">Amaro</option>
               <option value="vermouth">Vermouth</option>
               <option value="bitters">Bitters</option>
@@ -180,6 +183,32 @@
   </div>
 </div>
 
+<!-- Image Preview Modal (inventory) -->
+<div class="modal-overlay" id="imagePreviewOverlay">
+  <div class="modal image-preview-modal">
+    <div class="modal-body">
+      <div class="preview-details">
+        <h3 id="previewTitle"></h3>
+        <ul class="preview-fields">
+          <li><strong>Base Spirit:</strong> <span id="previewBaseSpirit"></span></li>
+          <li><strong>Style:</strong> <span id="previewStyle"></span></li>
+          <li><strong>ABV:</strong> <span id="previewABV"></span></li>
+          <li><strong>Volume:</strong> <span id="previewVolume"></span></li>
+          <li><strong>Quantity:</strong> <span id="previewQuantity"></span></li>
+          <li><strong>Price:</strong> <span id="previewPrice"></span></li>
+          <li><strong>Purchase Date:</strong> <span id="previewPurchase"></span></li>
+          <li><strong>Location:</strong> <span id="previewLocation"></span></li>
+          <li><strong>Tags:</strong> <span id="previewTags"></span></li>
+        </ul>
+        <div class="preview-notes" id="previewNotes"></div>
+      </div>
+      <div class="preview-image-wrap">
+        <img id="imagePreviewImg" alt="Bottle image preview" />
+      </div>
+    </div>
+  </div>
+  </div>
+
 <script>
 (() => {
   console.log('🔵 Inventory script starting...');
@@ -234,6 +263,19 @@
     const deleteModal = document.getElementById('deleteModalOverlay');
     const deleteMessage = document.getElementById('deleteMessage');
     const deleteConfirmBtn = document.getElementById('deleteModalConfirm');
+    const imagePreviewOverlay = document.getElementById('imagePreviewOverlay');
+    const imagePreviewImg = document.getElementById('imagePreviewImg');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewBaseSpirit = document.getElementById('previewBaseSpirit');
+    const previewStyle = document.getElementById('previewStyle');
+    const previewABV = document.getElementById('previewABV');
+    const previewVolume = document.getElementById('previewVolume');
+    const previewQuantity = document.getElementById('previewQuantity');
+    const previewPrice = document.getElementById('previewPrice');
+    const previewPurchase = document.getElementById('previewPurchase');
+    const previewLocation = document.getElementById('previewLocation');
+    const previewTags = document.getElementById('previewTags');
+    const previewNotes = document.getElementById('previewNotes');
     
     console.log('🔵 DOM elements found:', {
       bottleGrid: !!bottleGrid,
@@ -260,12 +302,54 @@
         document.body.appendChild(deleteModal);
         console.log('🔧 Moved deleteModalOverlay to <body>');
       }
+      if (imagePreviewOverlay && imagePreviewOverlay.parentElement !== document.body) {
+        document.body.appendChild(imagePreviewOverlay);
+        console.log('🔧 Moved imagePreviewOverlay to <body>');
+      }
     } catch (moveErr) {
       console.warn('⚠️ Could not move modals to body:', moveErr);
     }
 
     // Delegate bottle card action buttons so clicks survive re-renders
     bottleGrid.addEventListener('click', (e) => {
+      // Image preview (maximize in modal) – available to all
+      const imgEl = e.target.closest('article.bottle-card img');
+      if (imgEl) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Populate preview details
+        const card = imgEl.closest('article.bottle-card');
+        const id = card ? card.getAttribute('data-id') : null;
+        const bottle = id ? allBottles.find(b => String(b.id) === String(id)) : null;
+        if (imagePreviewImg) imagePreviewImg.src = imgEl.src;
+        if (bottle) {
+          if (previewTitle) previewTitle.textContent = `${bottle.brand || ''} ${bottle.product_name || ''}`.trim();
+          if (previewBaseSpirit) previewBaseSpirit.textContent = bottle.base_spirit || '';
+          if (previewStyle) previewStyle.textContent = bottle.style || '';
+          if (previewABV) previewABV.textContent = (typeof bottle.abv === 'number' ? `${bottle.abv}%` : (bottle.abv || ''));
+          if (previewVolume) previewVolume.textContent = bottle.volume_ml ? `${bottle.volume_ml} ml` : '';
+          if (previewQuantity) previewQuantity.textContent = String(bottle.quantity ?? '');
+          if (previewPrice) previewPrice.textContent = (typeof bottle.price_cents === 'number') ? `$${(bottle.price_cents/100).toFixed(2)} ${bottle.currency || 'USD'}` : '';
+          if (previewPurchase) previewPurchase.textContent = bottle.purchase_date || '';
+          if (previewLocation) previewLocation.textContent = bottle.location || '';
+          if (previewTags) previewTags.textContent = Array.isArray(bottle.tags) ? bottle.tags.join(', ') : '';
+          if (previewNotes) previewNotes.textContent = bottle.notes || '';
+        } else {
+          if (previewTitle) previewTitle.textContent = '';
+          if (previewBaseSpirit) previewBaseSpirit.textContent = '';
+          if (previewStyle) previewStyle.textContent = '';
+          if (previewABV) previewABV.textContent = '';
+          if (previewVolume) previewVolume.textContent = '';
+          if (previewQuantity) previewQuantity.textContent = '';
+          if (previewPrice) previewPrice.textContent = '';
+          if (previewPurchase) previewPurchase.textContent = '';
+          if (previewLocation) previewLocation.textContent = '';
+          if (previewTags) previewTags.textContent = '';
+          if (previewNotes) previewNotes.textContent = '';
+        }
+        imagePreviewOverlay.classList.add('active');
+        return;
+      }
       if (!isOwner) return;
       const editBtn = e.target.closest('.edit-bottle-btn');
       if (editBtn) {
@@ -296,6 +380,7 @@
       brandy: 'assets/bottles/whiskey.png',
       cognac: 'assets/bottles/whiskey.png',
       liqueur: 'assets/bottles/whiskey.png',
+      coffeeliqueur: 'assets/bottles/whiskey.png',
       amaro: 'assets/bottles/whiskey.png',
       vermouth: 'assets/bottles/whiskey.png',
       bitters: 'assets/bottles/whiskey.png',
@@ -398,9 +483,10 @@
       const placeholder = spiritPlaceholders[bottle.base_spirit?.toLowerCase()] || spiritPlaceholders.other;
       const imageSrc = bottle.image_url || placeholder;
       
+      const isPlaceholder = !bottle.image_url;
       return `
         <article class="bottle-card" data-id="${bottle.id}">
-          <img src="${imageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
+          <img class="${isPlaceholder ? 'placeholder-img' : ''}" src="${imageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
           <h3>${bottle.brand || 'Unknown'}</h3>
           <p class="bottle-product">${bottle.product_name || ''}</p>
           <p class="bottle-details">
@@ -687,6 +773,16 @@
     });
     deleteModal.addEventListener('click', (e) => {
       if (e.target === deleteModal) closeDeleteModal();
+    });
+    imagePreviewOverlay.addEventListener('click', (e) => {
+      if (e.target === imagePreviewOverlay) {
+        imagePreviewOverlay.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && imagePreviewOverlay.classList.contains('active')) {
+        imagePreviewOverlay.classList.remove('active');
+      }
     });
 
     // Initial load
