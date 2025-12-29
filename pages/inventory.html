@@ -1,0 +1,622 @@
+<div class="inventory-wrap">
+  <!-- Header controls -->
+  <div class="inventory-header">
+    <div class="inventory-search-row">
+      <input 
+        type="text" 
+        id="inventorySearch" 
+        class="inventory-search" 
+        placeholder="Search by bottle name..."
+      />
+      <button id="addBottleBtn" class="filter-reset-btn is-hidden" type="button">+ Add Bottle</button>
+    </div>
+    
+    <div class="inventory-filters">
+      <!-- Base Spirits Filter -->
+      <div class="filter-group">
+        <label class="filter-label">Base Spirits:</label>
+        <div class="filter-pills" id="baseSpiritFilters">
+          <button class="filter-pill active" data-spirit="all">All</button>
+          <button class="filter-pill" data-spirit="bourbon">Bourbon</button>
+          <button class="filter-pill" data-spirit="whiskey">Whiskey</button>
+          <button class="filter-pill" data-spirit="rye">Rye</button>
+          <button class="filter-pill" data-spirit="scotch">Scotch</button>
+          <button class="filter-pill" data-spirit="rum">Rum</button>
+          <button class="filter-pill" data-spirit="gin">Gin</button>
+          <button class="filter-pill" data-spirit="vodka">Vodka</button>
+          <button class="filter-pill" data-spirit="tequila">Tequila</button>
+          <button class="filter-pill" data-spirit="mezcal">Mezcal</button>
+          <button class="filter-pill" data-spirit="brandy">Brandy</button>
+          <button class="filter-pill" data-spirit="cognac">Cognac</button>
+        </div>
+      </div>
+      
+      <!-- Mixers/Modifiers Filter -->
+      <div class="filter-group">
+        <label class="filter-label">Mixers & Modifiers:</label>
+        <div class="filter-pills" id="mixerFilters">
+          <button class="filter-pill active" data-mixer="all">All</button>
+          <button class="filter-pill" data-mixer="liqueur">Liqueur</button>
+          <button class="filter-pill" data-mixer="amaro">Amaro</button>
+          <button class="filter-pill" data-mixer="vermouth">Vermouth</button>
+          <button class="filter-pill" data-mixer="bitters">Bitters</button>
+          <button class="filter-pill" data-mixer="syrup">Syrup</button>
+          <button class="filter-pill" data-mixer="foam">Foam</button>
+          <button class="filter-pill" data-mixer="cordial">Cordial</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottle Grid -->
+  <div id="bottleGrid" class="bottle-grid">
+    <!-- Populated by JS -->
+  </div>
+  
+  <div id="emptyState" class="inventory-empty is-hidden">
+    <p>No bottles found. <span id="addBottlePrompt" class="is-hidden">Add your first bottle to get started!</span></p>
+  </div>
+</div>
+
+<!-- Add/Edit Bottle Modal -->
+<div class="modal-overlay" id="bottleModalOverlay">
+  <div class="modal bottle-modal">
+    <div class="modal-header">
+      <h2 id="bottleModalTitle">Add Bottle</h2>
+      <button class="modal-close" id="bottleModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="bottleForm">
+        <input type="hidden" id="bottleId" />
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bottleBrand">Brand *</label>
+            <input type="text" id="bottleBrand" required />
+          </div>
+          <div class="form-group">
+            <label for="bottleProduct">Product Name *</label>
+            <input type="text" id="bottleProduct" required />
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bottleBaseSpirit">Base Spirit *</label>
+            <select id="bottleBaseSpirit" required>
+              <option value="">Select...</option>
+              <option value="bourbon">Bourbon</option>
+              <option value="whiskey">Whiskey</option>
+              <option value="rye">Rye</option>
+              <option value="scotch">Scotch</option>
+              <option value="rum">Rum</option>
+              <option value="gin">Gin</option>
+              <option value="vodka">Vodka</option>
+              <option value="tequila">Tequila</option>
+              <option value="mezcal">Mezcal</option>
+              <option value="brandy">Brandy</option>
+              <option value="cognac">Cognac</option>
+              <option value="liqueur">Liqueur</option>
+              <option value="amaro">Amaro</option>
+              <option value="vermouth">Vermouth</option>
+              <option value="bitters">Bitters</option>
+              <option value="syrup">Syrup</option>
+              <option value="foam">Foam</option>
+              <option value="cordial">Cordial</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bottleStyle">Style/Type</label>
+            <input type="text" id="bottleStyle" placeholder="e.g. Single Malt, Spiced, London Dry" />
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bottleABV">ABV %</label>
+            <input type="number" id="bottleABV" step="0.1" min="0" max="100" />
+          </div>
+          <div class="form-group">
+            <label for="bottleVolume">Volume (ml)</label>
+            <input type="number" id="bottleVolume" step="1" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="bottleQuantity">Quantity *</label>
+            <input type="number" id="bottleQuantity" step="1" min="0" value="1" required />
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bottlePrice">Price</label>
+            <input type="number" id="bottlePrice" step="0.01" min="0" placeholder="USD" />
+          </div>
+          <div class="form-group">
+            <label for="bottlePurchaseDate">Purchase Date</label>
+            <input type="date" id="bottlePurchaseDate" />
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="bottleLocation">Location</label>
+          <input type="text" id="bottleLocation" placeholder="e.g. Top shelf, Cabinet A" />
+        </div>
+        
+        <div class="form-group">
+          <label for="bottleTags">Tags (comma-separated)</label>
+          <input type="text" id="bottleTags" placeholder="e.g. favorite, gift, rare" />
+        </div>
+        
+        <div class="form-group">
+          <label for="bottleNotes">Notes</label>
+          <textarea id="bottleNotes" rows="3" placeholder="Tasting notes, pairing suggestions, etc."></textarea>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn">📷 Scan Barcode</button>
+          <div class="form-actions-right">
+            <button type="button" class="cancel-btn" id="bottleModalCancel">Cancel</button>
+            <button type="submit" class="submit-btn">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModalOverlay">
+  <div class="modal delete-modal">
+    <div class="modal-header">
+      <h2>Confirm Delete</h2>
+      <button class="modal-close" id="deleteModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="deleteMessage">Are you sure you want to remove this bottle from inventory?</p>
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" id="deleteModalCancel">Cancel</button>
+        <button type="button" class="delete-btn" id="deleteModalConfirm">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  console.log('🔵 Inventory script starting...');
+  
+  const API_BASE = 'https://bar.streeter.cc/api';
+  
+  // Local dev mode: Set to true to test without CF Access
+  const LOCAL_DEV_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  console.log('🔵 LOCAL_DEV_MODE:', LOCAL_DEV_MODE, 'hostname:', window.location.hostname);
+  
+  let allBottles = [];
+  let isOwner = false;
+  let currentFilters = {
+    search: '',
+    baseSpirit: 'all',
+    mixer: 'all'
+  };
+  let editingBottleId = null;
+  let deletingBottleId = null;
+
+  // Wait for DOM to be ready
+  function init() {
+    console.log('🔵 Init function called');
+    
+    // DOM elements
+    const bottleGrid = document.getElementById('bottleGrid');
+    const emptyState = document.getElementById('emptyState');
+    const addBottlePrompt = document.getElementById('addBottlePrompt');
+    const searchInput = document.getElementById('inventorySearch');
+    const addBottleBtn = document.getElementById('addBottleBtn');
+    const baseSpiritFilters = document.getElementById('baseSpiritFilters');
+    const mixerFilters = document.getElementById('mixerFilters');
+    
+    const bottleModal = document.getElementById('bottleModalOverlay');
+    const bottleModalTitle = document.getElementById('bottleModalTitle');
+    const bottleForm = document.getElementById('bottleForm');
+    const scanBarcodeBtn = document.getElementById('scanBarcodeBtn');
+    
+    const deleteModal = document.getElementById('deleteModalOverlay');
+    const deleteMessage = document.getElementById('deleteMessage');
+    const deleteConfirmBtn = document.getElementById('deleteModalConfirm');
+    
+    console.log('🔵 DOM elements found:', {
+      bottleGrid: !!bottleGrid,
+      addBottleBtn: !!addBottleBtn,
+      searchInput: !!searchInput,
+      baseSpiritFilters: !!baseSpiritFilters
+    });
+    
+    if (!bottleGrid || !addBottleBtn) {
+      console.warn('⚠️ Required DOM elements not found, retrying...');
+      setTimeout(init, 50); // Retry after a short delay
+      return;
+    }
+    
+    console.log('✅ All DOM elements ready, setting up...');
+  
+    // Placeholder images based on spirit type
+    const spiritPlaceholders = {
+    bourbon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23654321" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23654321" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23654321" font-size="12" opacity="0.5"%3EBourbon%3C/text%3E%3C/svg%3E',
+    whiskey: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23b8860b" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23b8860b" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23b8860b" font-size="12" opacity="0.5"%3EWhiskey%3C/text%3E%3C/svg%3E',
+    rye: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23cd853f" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23cd853f" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23cd853f" font-size="12" opacity="0.5"%3ERye%3C/text%3E%3C/svg%3E',
+    scotch: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23d2691e" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23d2691e" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23d2691e" font-size="12" opacity="0.5"%3EScotch%3C/text%3E%3C/svg%3E',
+    rum: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%238b4513" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%238b4513" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b4513" font-size="12" opacity="0.5"%3ERum%3C/text%3E%3C/svg%3E',
+    gin: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%2387ceeb" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%2387ceeb" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%2387ceeb" font-size="12" opacity="0.5"%3EGin%3C/text%3E%3C/svg%3E',
+    vodka: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23e0e0e0" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23e0e0e0" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23e0e0e0" font-size="12" opacity="0.5"%3EVodka%3C/text%3E%3C/svg%3E',
+    tequila: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23f4a460" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23f4a460" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23f4a460" font-size="12" opacity="0.5"%3ETequila%3C/text%3E%3C/svg%3E',
+    mezcal: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23daa520" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23daa520" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23daa520" font-size="12" opacity="0.5"%3EMezcal%3C/text%3E%3C/svg%3E',
+    brandy: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23a0522d" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23a0522d" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23a0522d" font-size="12" opacity="0.5"%3EBrandy%3C/text%3E%3C/svg%3E',
+    cognac: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%238b4513" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%238b4513" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b4513" font-size="12" opacity="0.5"%3ECognac%3C/text%3E%3C/svg%3E',
+    liqueur: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ff69b4" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ff69b4" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ff69b4" font-size="12" opacity="0.5"%3ELiqueur%3C/text%3E%3C/svg%3E',
+    amaro: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23800020" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23800020" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23800020" font-size="12" opacity="0.5"%3EAmaro%3C/text%3E%3C/svg%3E',
+    vermouth: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23dc143c" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23dc143c" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23dc143c" font-size="10" opacity="0.5"%3EVermouth%3C/text%3E%3C/svg%3E',
+    bitters: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="30" y="20" width="20" height="120" rx="2" fill="%238b0000" opacity="0.3"/%3E%3Crect x="28" y="15" width="24" height="8" rx="1" fill="%238b0000" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b0000" font-size="10" opacity="0.5"%3EBitters%3C/text%3E%3C/svg%3E',
+    syrup: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ffb347" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ffb347" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ffb347" font-size="12" opacity="0.5"%3ESyrup%3C/text%3E%3C/svg%3E',
+    foam: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23f0f0f0" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23f0f0f0" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23f0f0f0" font-size="12" opacity="0.5"%3EFoam%3C/text%3E%3C/svg%3E',
+    cordial: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ff6347" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ff6347" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ff6347" font-size="11" opacity="0.5"%3ECordial%3C/text%3E%3C/svg%3E',
+    other: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23808080" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23808080" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23808080" font-size="12" opacity="0.5"%3EBottle%3C/text%3E%3C/svg%3E'
+    };
+
+    // Load bottles from API
+    async function loadBottles() {
+      console.log('🔵 loadBottles called, LOCAL_DEV_MODE:', LOCAL_DEV_MODE);
+      try {
+        // In local dev mode, enable owner features and use empty inventory
+        if (LOCAL_DEV_MODE) {
+          console.log('🔧 Local dev mode: Owner features enabled');
+          isOwner = true;
+          console.log('🔵 Removing is-hidden from addBottleBtn');
+          console.log('🔵 Button before:', addBottleBtn.classList.toString());
+          addBottleBtn.classList.remove('is-hidden');
+          console.log('🔵 Button after:', addBottleBtn.classList.toString());
+          console.log('🔵 Button display:', window.getComputedStyle(addBottleBtn).display);
+          console.log('🔵 Button visibility:', window.getComputedStyle(addBottleBtn).visibility);
+          addBottlePrompt.classList.remove('is-hidden');
+          allBottles = [];
+          console.log('🔵 About to call renderBottles');
+          renderBottles();
+          console.log('🔵 After renderBottles, button classes:', addBottleBtn.classList.toString());
+          return;
+        }
+      
+      const resp = await fetch(`${API_BASE}/bottles`);
+      
+      if (resp.ok) {
+        isOwner = true;
+        addBottleBtn.classList.remove('is-hidden');
+        addBottlePrompt.classList.remove('is-hidden');
+      } else if (resp.status === 401 || resp.status === 403) {
+        isOwner = false;
+        addBottleBtn.classList.add('is-hidden');
+        addBottlePrompt.classList.add('is-hidden');
+      } else {
+        throw new Error(`Failed to load bottles: ${resp.statusText}`);
+      }
+      
+      const data = await resp.json();
+      allBottles = data.bottles || [];
+      renderBottles();
+    } catch (err) {
+      console.error('Error loading bottles:', err);
+      bottleGrid.innerHTML = '<p style="text-align:center;color:#f66;padding:2rem;">Failed to load inventory. Please try again.</p>';
+    }
+    }
+
+    // Filter bottles based on current filters
+    function getFilteredBottles() {
+    return allBottles.filter(bottle => {
+      // Search filter (substring match on brand + product)
+      if (currentFilters.search) {
+        const searchLower = currentFilters.search.toLowerCase();
+        const brandMatch = (bottle.brand || '').toLowerCase().includes(searchLower);
+        const productMatch = (bottle.product_name || '').toLowerCase().includes(searchLower);
+        if (!brandMatch && !productMatch) return false;
+      }
+      
+      // Base spirit filter
+      if (currentFilters.baseSpirit !== 'all') {
+        if ((bottle.base_spirit || '').toLowerCase() !== currentFilters.baseSpirit) {
+          return false;
+        }
+      }
+      
+      // Mixer filter
+      if (currentFilters.mixer !== 'all') {
+        if ((bottle.base_spirit || '').toLowerCase() !== currentFilters.mixer) {
+          return false;
+        }
+      }
+      
+      return true;
+      });
+    }
+
+    // Render bottles to grid
+    function renderBottles() {
+    const filtered = getFilteredBottles();
+    
+    if (filtered.length === 0) {
+      bottleGrid.innerHTML = '';
+      emptyState.classList.remove('is-hidden');
+      return;
+    }
+    
+    emptyState.classList.add('is-hidden');
+    bottleGrid.innerHTML = filtered.map(bottle => {
+      const placeholder = spiritPlaceholders[bottle.base_spirit?.toLowerCase()] || spiritPlaceholders.other;
+      const imageSrc = bottle.image_url || placeholder;
+      
+      return `
+        <article class="bottle-card" data-id="${bottle.id}">
+          <img src="${imageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
+          <h3>${bottle.brand || 'Unknown'}</h3>
+          <p class="bottle-product">${bottle.product_name || ''}</p>
+          <p class="bottle-details">
+            <span class="bottle-spirit">${bottle.base_spirit || ''}</span>
+            ${bottle.volume_ml ? `<span class="bottle-volume">${bottle.volume_ml}ml</span>` : ''}
+          </p>
+          ${bottle.location ? `<p class="bottle-location">📍 ${bottle.location}</p>` : ''}
+          <p class="bottle-quantity">Qty: ${bottle.quantity || 0}</p>
+          ${isOwner ? `
+            <div class="bottle-actions">
+              <button class="edit-bottle-btn" data-id="${bottle.id}">Edit</button>
+              <button class="delete-bottle-btn" data-id="${bottle.id}">Delete</button>
+            </div>
+          ` : ''}
+        </article>
+      `;
+    }).join('');
+    
+    // Attach event listeners for owner actions
+    if (isOwner) {
+      document.querySelectorAll('.edit-bottle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          openEditModal(id);
+        });
+      });
+      
+      document.querySelectorAll('.delete-bottle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          openDeleteModal(id);
+        });
+      });
+      }
+    }
+
+    // Open add modal
+    function openAddModal() {
+      console.log('🔵 openAddModal called');
+      editingBottleId = null;
+      bottleModalTitle.textContent = 'Add Bottle';
+      bottleForm.reset();
+      document.getElementById('bottleId').value = '';
+      console.log('🔵 Adding active class to modal');
+      bottleModal.classList.add('active');
+      console.log('🔵 Modal classes:', bottleModal.className);
+    }
+
+    // Open edit modal
+    function openEditModal(id) {
+      const bottle = allBottles.find(b => b.id === parseInt(id));
+      if (!bottle) return;
+      
+      editingBottleId = id;
+      bottleModalTitle.textContent = 'Edit Bottle';
+      
+      document.getElementById('bottleId').value = bottle.id;
+      document.getElementById('bottleBrand').value = bottle.brand || '';
+      document.getElementById('bottleProduct').value = bottle.product_name || '';
+    document.getElementById('bottleBaseSpirit').value = bottle.base_spirit || '';
+    document.getElementById('bottleStyle').value = bottle.style || '';
+    document.getElementById('bottleABV').value = bottle.abv || '';
+    document.getElementById('bottleVolume').value = bottle.volume_ml || '';
+    document.getElementById('bottleQuantity').value = bottle.quantity || 1;
+    document.getElementById('bottlePrice').value = bottle.price_cents ? (bottle.price_cents / 100).toFixed(2) : '';
+    document.getElementById('bottlePurchaseDate').value = bottle.purchase_date || '';
+    document.getElementById('bottleLocation').value = bottle.location || '';
+      document.getElementById('bottleTags').value = Array.isArray(bottle.tags) ? bottle.tags.join(', ') : '';
+      document.getElementById('bottleNotes').value = bottle.notes || '';
+      
+      bottleModal.classList.add('active');
+    }
+
+    // Close modals
+    function closeBottleModal() {
+      bottleModal.classList.remove('active');
+      editingBottleId = null;
+    }
+
+    function closeDeleteModal() {
+      deleteModal.classList.remove('active');
+      deletingBottleId = null;
+    }
+
+    // Submit bottle form
+    async function submitBottle(e) {
+      e.preventDefault();
+      
+      const formData = {
+        brand: document.getElementById('bottleBrand').value.trim(),
+        product_name: document.getElementById('bottleProduct').value.trim(),
+        base_spirit: document.getElementById('bottleBaseSpirit').value,
+        style: document.getElementById('bottleStyle').value.trim() || null,
+        abv: parseFloat(document.getElementById('bottleABV').value) || null,
+        volume_ml: parseInt(document.getElementById('bottleVolume').value) || null,
+        quantity: parseInt(document.getElementById('bottleQuantity').value) || 1,
+        price_cents: document.getElementById('bottlePrice').value ? Math.round(parseFloat(document.getElementById('bottlePrice').value) * 100) : null,
+        currency: document.getElementById('bottlePrice').value ? 'USD' : null,
+        purchase_date: document.getElementById('bottlePurchaseDate').value || null,
+        location: document.getElementById('bottleLocation').value.trim() || null,
+        notes: document.getElementById('bottleNotes').value.trim() || null,
+        tags: document.getElementById('bottleTags').value
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0)
+      };
+      
+      try {
+        // Local dev mode: Simulate adding to local array
+        if (LOCAL_DEV_MODE) {
+          if (editingBottleId !== null) {
+            const index = allBottles.findIndex(b => b.id === parseInt(editingBottleId));
+            if (index !== -1) {
+              allBottles[index] = { ...allBottles[index], ...formData };
+            }
+          } else {
+            const newBottle = {
+              id: Date.now(),
+              ...formData,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            allBottles.push(newBottle);
+          }
+          closeBottleModal();
+          renderBottles();
+          return;
+        }
+        
+        const url = editingBottleId ? `${API_BASE}/bottles/${editingBottleId}` : `${API_BASE}/bottles`;
+        const method = editingBottleId ? 'PUT' : 'POST';
+        
+        const resp = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.error || 'Failed to save bottle');
+        }
+        
+        closeBottleModal();
+        await loadBottles();
+      } catch (err) {
+        console.error('Error saving bottle:', err);
+        alert(`Failed to save bottle: ${err.message}`);
+      }
+    }
+
+    // Open delete modal
+    function openDeleteModal(id) {
+      const bottle = allBottles.find(b => b.id === parseInt(id));
+      if (!bottle) return;
+      
+      deletingBottleId = id;
+      deleteMessage.textContent = `Are you sure you want to remove ${bottle.brand} ${bottle.product_name} from inventory?`;
+      deleteModal.classList.add('active');
+    }
+
+    // Confirm delete
+    async function confirmDelete() {
+      if (!deletingBottleId) return;
+      
+      try {
+        // Local dev mode: Remove from local array
+        if (LOCAL_DEV_MODE) {
+          allBottles = allBottles.filter(b => b.id !== parseInt(deletingBottleId));
+          closeDeleteModal();
+          renderBottles();
+          return;
+        }
+        
+        const resp = await fetch(`${API_BASE}/bottles/${deletingBottleId}`, {
+          method: 'DELETE'
+        });
+        
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.error || 'Failed to delete bottle');
+        }
+        
+        closeDeleteModal();
+        await loadBottles();
+      } catch (err) {
+        console.error('Error deleting bottle:', err);
+        alert(`Failed to delete bottle: ${err.message}`);
+      }
+    }
+
+    // Search handler
+    searchInput.addEventListener('input', (e) => {
+      currentFilters.search = e.target.value.trim();
+      renderBottles();
+    });
+
+    // Filter handlers
+    baseSpiritFilters.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-pill')) return;
+      
+      baseSpiritFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilters.baseSpirit = e.target.dataset.spirit;
+      currentFilters.mixer = 'all'; // Reset mixer filter
+      mixerFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      mixerFilters.querySelector('[data-mixer="all"]').classList.add('active');
+      renderBottles();
+    });
+
+    mixerFilters.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('filter-pill')) return;
+      
+      mixerFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilters.mixer = e.target.dataset.mixer;
+      currentFilters.baseSpirit = 'all'; // Reset base spirit filter
+      baseSpiritFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      baseSpiritFilters.querySelector('[data-spirit="all"]').classList.add('active');
+      renderBottles();
+    });
+
+    // Modal event listeners
+    console.log('🔵 Setting up event listeners...');
+    console.log('🔵 addBottleBtn element:', addBottleBtn);
+    console.log('🔵 addBottleBtn id:', addBottleBtn.id);
+    console.log('🔵 Is same element?', addBottleBtn === document.getElementById('addBottleBtn'));
+    
+    addBottleBtn.addEventListener('click', () => {
+      console.log('🔵 Add bottle button clicked!');
+      openAddModal();
+    });
+    
+    // Verify event listener was added
+    console.log('🔵 Event listener added to button');
+    document.getElementById('bottleModalClose').addEventListener('click', closeBottleModal);
+    document.getElementById('bottleModalCancel').addEventListener('click', closeBottleModal);
+    bottleForm.addEventListener('submit', submitBottle);
+    
+    document.getElementById('deleteModalClose').addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
+    deleteConfirmBtn.addEventListener('click', confirmDelete);
+    
+    // Scan barcode button (placeholder for future)
+    scanBarcodeBtn.addEventListener('click', () => {
+      alert('Barcode scanning will be implemented soon! This will allow you to scan bottle barcodes and auto-populate details from sites like MegaBev or Total Wine.');
+    });
+
+    // Close modals on overlay click
+    bottleModal.addEventListener('click', (e) => {
+      if (e.target === bottleModal) closeBottleModal();
+    });
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+
+    // Initial load
+    loadBottles();
+  }
+  
+  // Run init immediately (SPA already has DOM ready)
+  init();
+})();
+</script>

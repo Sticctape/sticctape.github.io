@@ -756,3 +756,409 @@ input:checked + .toggle-slider:before {
   background: rgba(255, 100, 100, 0.2);
   border-color: rgba(255, 100, 100, 0.6);
 }
+
+/* ─────────────────────────  INVENTORY PAGE  ─────────────────────── */
+.inventory-wrap {
+  max-width: min(1800px, 90vw);
+  margin: 0 auto;
+}
+
+.inventory-header {
+  margin-bottom: 2rem;
+}
+
+.inventory-search-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.inventory-search {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.inventory-search:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(100, 150, 255, 0.5);
+}
+
+.inventory-search::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.inventory-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 0.4rem 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.filter-pill.active {
+  background: rgba(100, 150, 255, 0.3);
+  border-color: rgba(100, 150, 255, 0.8);
+  color: #64a8ff;
+}
+
+.bottle-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.bottle-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.bottle-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.bottle-card img {
+  width: 80px;
+  height: 160px;
+  object-fit: contain;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.bottle-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+  color: #fff;
+}
+
+.bottle-product {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 0.75rem;
+}
+
+.bottle-details {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bottle-spirit {
+  background: rgba(100, 150, 255, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.bottle-volume {
+  opacity: 0.7;
+}
+
+.bottle-location {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+
+.bottle-quantity {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(100, 255, 100, 0.8);
+  margin: 0.75rem 0 0;
+}
+
+.bottle-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.edit-bottle-btn,
+.delete-bottle-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-bottle-btn {
+  background: rgba(100, 150, 255, 0.2);
+  color: #64a8ff;
+  border-color: rgba(100, 150, 255, 0.4);
+}
+
+.edit-bottle-btn:hover {
+  background: rgba(100, 150, 255, 0.3);
+  border-color: rgba(100, 150, 255, 0.6);
+}
+
+.delete-bottle-btn {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6464;
+  border-color: rgba(255, 100, 100, 0.4);
+}
+
+.delete-bottle-btn:hover {
+  background: rgba(255, 100, 100, 0.3);
+  border-color: rgba(255, 100, 100, 0.6);
+}
+
+.inventory-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.1rem;
+}
+
+.bottle-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.bottle-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(100, 150, 255, 0.5);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.scan-barcode-btn {
+  padding: 0.6rem 1rem;
+  background: rgba(100, 200, 255, 0.15);
+  border: 1px solid rgba(100, 200, 255, 0.3);
+  border-radius: 6px;
+  color: #64c8ff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.scan-barcode-btn:hover {
+  background: rgba(100, 200, 255, 0.25);
+  border-color: rgba(100, 200, 255, 0.5);
+}
+
+.cancel-btn {
+  padding: 0.6rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.submit-btn {
+  padding: 0.6rem 1.5rem;
+  background: rgba(100, 200, 100, 0.25);
+  border: 1px solid rgba(100, 200, 100, 0.5);
+  border-radius: 6px;
+  color: #64c864;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.submit-btn:hover {
+  background: rgba(100, 200, 100, 0.35);
+  border-color: rgba(100, 200, 100, 0.7);
+}
+
+.delete-btn {
+  padding: 0.6rem 1.5rem;
+  background: rgba(255, 100, 100, 0.25);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  border-radius: 6px;
+  color: #ff6464;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 100, 100, 0.35);
+  border-color: rgba(255, 100, 100, 0.7);
+}
+
+.delete-modal {
+  max-width: 450px;
+}
+
+.delete-modal .modal-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.delete-modal p {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.delete-modal .form-actions {
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .bottle-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  
+  .bottle-card {
+    padding: 1rem;
+  }
+  
+  .bottle-card img {
+    width: 60px;
+    height: 120px;
+  }
+  
+  .inventory-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions-right {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .scan-barcode-btn,
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+  }
+}
