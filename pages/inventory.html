@@ -187,6 +187,7 @@
   console.log('🔵 Inventory script starting...');
   
   const API_BASE = 'https://bar.streeter.cc/api';
+  const API_ADMIN = 'https://bar.streeter.cc/api/admin';
   
   // Local dev mode: Set to true to test without CF Access
   const LOCAL_DEV_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -287,7 +288,8 @@
       console.log('🔵 Not local dev, fetching from API...');
       
       // Check if we're authenticated via CF Access (owner only)
-      const authCheck = await fetch(`${API_BASE}/auth/check`, {
+      // Use admin path so CF Access (if configured) can prompt for login
+      const authCheck = await fetch(`${API_ADMIN}/auth/check`, {
         credentials: 'include',
         mode: 'cors'
       });
@@ -505,7 +507,7 @@
           return;
         }
         
-        const url = editingBottleId ? `${API_BASE}/bottles/${editingBottleId}` : `${API_BASE}/bottles`;
+        const url = editingBottleId ? `${API_ADMIN}/bottles/${editingBottleId}` : `${API_ADMIN}/bottles`;
         const method = editingBottleId ? 'PUT' : 'POST';
         
         const resp = await fetch(url, {
@@ -552,10 +554,11 @@
           return;
         }
         
-        const resp = await fetch(`${API_BASE}/bottles/${deletingBottleId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        mode: 'cors'
+        const resp = await fetch(`${API_ADMIN}/bottles/${deletingBottleId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          mode: 'cors'
+        });
         
         if (!resp.ok) {
           const err = await resp.json();
@@ -579,6 +582,8 @@
     // Filter handlers
     baseSpiritFilters.addEventListener('click', (e) => {
       if (!e.target.classList.contains('filter-pill')) return;
+      e.preventDefault();
+      e.stopPropagation();
       
       baseSpiritFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       e.target.classList.add('active');
@@ -591,6 +596,8 @@
 
     mixerFilters.addEventListener('click', (e) => {
       if (!e.target.classList.contains('filter-pill')) return;
+      e.preventDefault();
+      e.stopPropagation();
       
       mixerFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       e.target.classList.add('active');

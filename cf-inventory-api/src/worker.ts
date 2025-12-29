@@ -278,7 +278,9 @@ export default {
 
     try {
       const url = new URL(request.url);
-      const path = url.pathname.replace(/\/$/, '');
+      const rawPath = url.pathname.replace(/\/$/, '');
+      const isAdmin = rawPath.startsWith('/api/admin');
+      const path = isAdmin ? rawPath.replace('/api/admin', '/api') : rawPath;
 
       // Block disallowed origins early
       const origin = request.headers.get('Origin');
@@ -309,6 +311,8 @@ export default {
           return withCORS(await handleListBottles(request, env, ownerId), request);
         }
         if (request.method === 'POST') {
+          // Writes only allowed via admin path
+          if (!isAdmin) return withCORS(json({ error: 'not found' }, { status: 404 }), request);
           if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleCreateBottle(request, env, ownerId), request);
         }
@@ -318,10 +322,14 @@ export default {
       if (match) {
         const id = match[1];
         if (request.method === 'PUT') {
+          // Writes only allowed via admin path
+          if (!isAdmin) return withCORS(json({ error: 'not found' }, { status: 404 }), request);
           if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleUpdateBottle(request, env, id, ownerId), request);
         }
         if (request.method === 'DELETE') {
+          // Writes only allowed via admin path
+          if (!isAdmin) return withCORS(json({ error: 'not found' }, { status: 404 }), request);
           if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleDeleteBottle(request, env, id, ownerId), request);
         }
