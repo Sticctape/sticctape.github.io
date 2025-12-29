@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
-    if (requiresStaff && !isStaff) {
+    if (requiresStaff && !(isStaff || isOwner)) {
       // Redirect to home
       window.location.hash = '#about';
       return;
@@ -180,7 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cards.forEach(card =>
       card.addEventListener('click', async () => {
+        const isOwner = localStorage.getItem('isOwner') === 'true';
         const isStaff = localStorage.getItem('isStaff') === 'true';
+        const isPrivileged = isOwner || isStaff;
         const isCustomer = localStorage.getItem('isCustomer') === 'true';
 
         // Load recipe data from recipes.json (ingredients + instructions)
@@ -193,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mTitle.textContent = (recipe && recipe.name) || card.dataset.name || '';
 
         // Ingredients: members see `full`, non-members see `clean` (fallback to dataset)
-        const ingredientData = isStaff
+        const ingredientData = isPrivileged
                   ? (recipe && recipe.full) || card.dataset.clean || ''
                   : (recipe && recipe.clean) || card.dataset.clean || '';
         mIng.innerHTML = ingredientData
@@ -202,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             .join('');
 
         // Instructions: members see the recipe.instructions from JSON; non-members get a login prompt
-        if (isStaff) {
+        if (isPrivileged) {
           const instr = (recipe && recipe.instructions) || '';
           mInstr.innerHTML = instr
                                 .replace(/(?:\r\n|\r|\n)/g, '<br>');
@@ -212,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // show/hide order button for customers and staff
         const orderBtn = document.getElementById('orderBtn');
-        if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isStaff));
+        if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isPrivileged));
 
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -840,16 +842,16 @@ document.querySelectorAll('nav.site-nav ul a')
     const inventoryLink = document.querySelector('.nav-inventory-link');
     if (inventoryLink) inventoryLink.classList.toggle('is-hidden', !(isOwner || isStaff));
 
-    // show/hide staff orders link
+    // show/hide staff orders link (owner or staff)
     const staffOrdersLink = document.querySelector('.nav-staff-link');
-    if (staffOrdersLink) staffOrdersLink.classList.toggle('is-hidden', !isStaff);
+    if (staffOrdersLink) staffOrdersLink.classList.toggle('is-hidden', !(isOwner || isStaff));
 
-    // show cart for customers and staff, update count
+    // show cart for customers, staff, and owner, update count
     try {
       const cartWrap = document.getElementById('navCartWrap'); // Desktop
       const cartWrapMobile = document.getElementById('navCartWrapMobile'); // Mobile
-      if (cartWrap) cartWrap.classList.toggle('is-hidden', !(isCustomer || isStaff));
-      if (cartWrapMobile) cartWrapMobile.classList.toggle('is-hidden', !(isCustomer || isStaff));
+      if (cartWrap) cartWrap.classList.toggle('is-hidden', !(isCustomer || isStaff || isOwner));
+      if (cartWrapMobile) cartWrapMobile.classList.toggle('is-hidden', !(isCustomer || isStaff || isOwner));
       updateCartCount(); // use helper to update badge
     } catch (e) { /* ignore */ }
   }

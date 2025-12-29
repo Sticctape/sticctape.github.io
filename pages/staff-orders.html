@@ -43,10 +43,10 @@
 
 <script>
 // Staff orders dashboard logic
-let staffAutoRefresh = false;
-let staffRefreshInterval = null;
-let allOrders = []; // Store all orders for filtering
-let selectedStatusFilters = ['Received', 'Making', 'Ready', 'Picked Up']; // Track selected filters (shows all statuses by default)
+var staffAutoRefresh = false;
+var staffRefreshInterval = null;
+var allOrders = []; // Store all orders for filtering
+var selectedStatusFilters = ['Received', 'Making', 'Ready', 'Picked Up']; // Track selected filters (shows all statuses by default)
 
 // Abort any previous requests and cleanup
 if (window.staffOrdersController && !window.staffOrdersController.signal.aborted) {
@@ -55,7 +55,7 @@ if (window.staffOrdersController && !window.staffOrdersController.signal.aborted
 
 // Create a fresh controller for this page load
 window.staffOrdersController = new AbortController();
-let staffOrdersController = window.staffOrdersController;
+var staffOrdersController = window.staffOrdersController;
 
 async function loadStaffOrders() {
   // Reset controller if it was aborted
@@ -65,7 +65,9 @@ async function loadStaffOrders() {
   
   const tbody = document.getElementById('staffOrdersBody');
   const errorDiv = document.getElementById('staffError');
+  const ownerToken = localStorage.getItem('ownerToken');
   const staffToken = localStorage.getItem('staffToken');
+  const token = ownerToken || staffToken;
   
   try {
     if (!tbody || !errorDiv) {
@@ -73,7 +75,7 @@ async function loadStaffOrders() {
       return;
     }
     
-    if (!staffToken) {
+    if (!token) {
       throw new Error("Not logged in - please log in on the main page first");
     }
     
@@ -81,7 +83,7 @@ async function loadStaffOrders() {
     
     const resp = await fetch('https://streeter.cc/api/all-orders', {
       headers: {
-        'X-Staff-Token': staffToken
+        'X-Staff-Token': token
       },
       signal: staffOrdersController.signal
     });
@@ -190,13 +192,15 @@ async function updateOrderStatus(orderId, newStatus) {
     staffOrdersController = window.staffOrdersController = new AbortController();
   }
   
+  const ownerToken = localStorage.getItem('ownerToken');
   const staffToken = localStorage.getItem('staffToken');
+  const token = ownerToken || staffToken;
   try {
     const resp = await fetch(`https://streeter.cc/api/status/${orderId}/${newStatus}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'X-Staff-Token': staffToken
+        'X-Staff-Token': token
       },
       signal: staffOrdersController.signal
     });
@@ -222,13 +226,15 @@ async function deleteStaffOrder(orderId) {
     staffOrdersController = window.staffOrdersController = new AbortController();
   }
   
+  const ownerToken = localStorage.getItem('ownerToken');
   const staffToken = localStorage.getItem('staffToken');
+  const token = ownerToken || staffToken;
   try {
     const resp = await fetch(`https://streeter.cc/api/orders/${orderId}`, {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
-        'X-Staff-Token': staffToken
+        'X-Staff-Token': token
       },
       signal: staffOrdersController.signal
     });
@@ -254,7 +260,9 @@ async function deleteAllPickedUp() {
     staffOrdersController = window.staffOrdersController = new AbortController();
   }
   
-  const staffToken = localStorage.getItem('staffToken');
+    const ownerToken = localStorage.getItem('ownerToken');
+    const staffToken = localStorage.getItem('staffToken');
+    const token = ownerToken || staffToken;
   const pickedUpOrders = allOrders.filter(order => order.status === 'Picked Up');
   
   if (pickedUpOrders.length === 0) {
@@ -273,7 +281,7 @@ async function deleteAllPickedUp() {
         method: 'DELETE',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Staff-Token': staffToken
+            'X-Staff-Token': token
         },
         signal: staffOrdersController.signal
       });
@@ -408,7 +416,7 @@ setTimeout(() => {
 loadStaffOrders();
 
 // Toggle auto-refresh
-const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+var autoRefreshToggle = document.getElementById('autoRefreshToggle');
 if (autoRefreshToggle) {
   // Reset toggle state
   autoRefreshToggle.checked = false;
