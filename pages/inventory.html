@@ -238,6 +238,12 @@
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
       console.log('🔵 Adding auth token to request');
+      console.log('🔵 Token type:', ownerToken ? 'owner' : 'staff');
+      console.log('🔵 Token first 20 chars:', token.slice(0, 20) + '...');
+      console.log('🔵 Starts with owner_:', token.startsWith('owner_'));
+      console.log('🔵 Starts with staff_:', token.startsWith('staff_'));
+    } else {
+      console.log('🔵 No owner or staff token found in localStorage');
     }
     return headers;
   }
