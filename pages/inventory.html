@@ -502,6 +502,7 @@
         const url = editingBottleId ? `${API_ADMIN}/bottles/${editingBottleId}` : `${API_ADMIN}/bottles`;
         const method = editingBottleId ? 'PUT' : 'POST';
         
+        console.log('🔵 Saving bottle:', { method, url, formData });
         const resp = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
@@ -511,15 +512,26 @@
         });
         
         if (!resp.ok) {
-          const err = await resp.json();
-          throw new Error(err.error || 'Failed to save bottle');
+          let errMsg = `HTTP ${resp.status} ${resp.statusText}`;
+          try {
+            const ct = resp.headers.get('content-type') || '';
+            if (ct.includes('application/json')) {
+              const err = await resp.json();
+              errMsg = err.error || errMsg;
+            } else {
+              const txt = await resp.text();
+              errMsg = txt?.slice(0, 300) || errMsg;
+            }
+          } catch {}
+          throw new Error(errMsg);
         }
         
         closeBottleModal();
         await loadBottles();
       } catch (err) {
-        console.error('Error saving bottle:', err);
-        alert(`Failed to save bottle: ${err.message}`);
+        console.error('⛔ Error saving bottle (network/CORS/auth?):', err);
+        const hint = 'If this says Failed to fetch, check: 1) Logged into CF Access at /api/admin/auth/check, 2) Worker route for /api/admin/* exists, 3) CORS allows https://streeter.cc';
+        alert(`Failed to save bottle: ${err.message || err}.\n${hint}`);
       }
     }
 
