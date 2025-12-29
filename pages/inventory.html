@@ -197,8 +197,7 @@
   let isOwner = false;
   let currentFilters = {
     search: '',
-    baseSpirit: 'all',
-    mixer: 'all'
+    selectedTypes: new Set()
   };
   let editingBottleId = null;
   let deletingBottleId = null;
@@ -331,6 +330,7 @@
 
     // Filter bottles based on current filters
     function getFilteredBottles() {
+    const hasTypeFilters = currentFilters.selectedTypes && currentFilters.selectedTypes.size > 0;
     return allBottles.filter(bottle => {
       // Search filter (substring match on brand + product)
       if (currentFilters.search) {
@@ -340,18 +340,10 @@
         if (!brandMatch && !productMatch) return false;
       }
       
-      // Base spirit filter
-      if (currentFilters.baseSpirit !== 'all') {
-        if ((bottle.base_spirit || '').toLowerCase() !== currentFilters.baseSpirit) {
-          return false;
-        }
-      }
-      
-      // Mixer filter
-      if (currentFilters.mixer !== 'all') {
-        if ((bottle.base_spirit || '').toLowerCase() !== currentFilters.mixer) {
-          return false;
-        }
+      // Type filters (union of base spirits + mixers)
+      if (hasTypeFilters) {
+        const t = (bottle.base_spirit || '').toLowerCase();
+        if (!currentFilters.selectedTypes.has(t)) return false;
       }
       
       return true;
@@ -579,18 +571,50 @@
       renderBottles();
     });
 
-    // Filter handlers
+    // Filter handlers (multi-select)
+    function setAllActive(groupEl, allAttr) {
+      groupEl.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      const allBtn = groupEl.querySelector(allAttr);
+      if (allBtn) allBtn.classList.add('active');
+    }
+
+    function clearAllSelections() {
+      currentFilters.selectedTypes.clear();
+      setAllActive(baseSpiritFilters, '[data-spirit="all"]');
+      setAllActive(mixerFilters, '[data-mixer="all"]');
+    }
+
+    function toggleTypeSelection(type, groupEl, allSelector) {
+      // Remove 'All' active when selecting a specific type
+      const allBtn = groupEl.querySelector(allSelector);
+      if (allBtn) allBtn.classList.remove('active');
+
+      // Find the button for this type in the group
+      const btn = Array.from(groupEl.querySelectorAll('.filter-pill')).find(p => (p.dataset.spirit || p.dataset.mixer) === type);
+      const willActivate = !(btn && btn.classList.contains('active'));
+
+      if (btn) btn.classList.toggle('active', willActivate);
+      if (willActivate) currentFilters.selectedTypes.add(type);
+      else currentFilters.selectedTypes.delete(type);
+
+      // If no types selected at all, revert to All on both groups
+      if (currentFilters.selectedTypes.size === 0) {
+        setAllActive(baseSpiritFilters, '[data-spirit="all"]');
+        setAllActive(mixerFilters, '[data-mixer="all"]');
+      }
+    }
+
     baseSpiritFilters.addEventListener('click', (e) => {
       if (!e.target.classList.contains('filter-pill')) return;
       e.preventDefault();
       e.stopPropagation();
-      
-      baseSpiritFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      e.target.classList.add('active');
-      currentFilters.baseSpirit = e.target.dataset.spirit;
-      currentFilters.mixer = 'all'; // Reset mixer filter
-      mixerFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      mixerFilters.querySelector('[data-mixer="all"]').classList.add('active');
+      const val = e.target.dataset.spirit;
+      if (!val) return;
+      if (val === 'all') {
+        clearAllSelections();
+      } else {
+        toggleTypeSelection(val, baseSpiritFilters, '[data-spirit="all"]');
+      }
       renderBottles();
     });
 
@@ -598,13 +622,13 @@
       if (!e.target.classList.contains('filter-pill')) return;
       e.preventDefault();
       e.stopPropagation();
-      
-      mixerFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      e.target.classList.add('active');
-      currentFilters.mixer = e.target.dataset.mixer;
-      currentFilters.baseSpirit = 'all'; // Reset base spirit filter
-      baseSpiritFilters.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      baseSpiritFilters.querySelector('[data-spirit="all"]').classList.add('active');
+      const val = e.target.dataset.mixer;
+      if (!val) return;
+      if (val === 'all') {
+        clearAllSelections();
+      } else {
+        toggleTypeSelection(val, mixerFilters, '[data-mixer="all"]');
+      }
       renderBottles();
     });
 
