@@ -298,10 +298,9 @@
       console.log('🔵 Not local dev, fetching from API...');
       
       // Check authentication status (owner vs staff)
-      // Use /api/admin/auth/check which is CF Access protected - this gives us the owner JWT
+      // Use /api/admin/auth/check which is CF Access protected
+      // CF Access sends JWT automatically; don't use credentials to avoid preflight
       const authCheck = await fetch(`${API_ADMIN}/auth/check`, {
-        headers: getAuthHeaders(),
-        credentials: 'include',
         mode: 'cors'
       });
       
