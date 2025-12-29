@@ -147,10 +147,16 @@ async function handleListBottles(request: Request, env: Env, ownerId: string | n
   const where: string[] = [];
   const params: any[] = [];
   
-  // If ownerId is provided, filter by owner. Otherwise return all public bottles.
+  // If ownerId is provided, filter by owner. Normalize unstable owner tokens.
   if (ownerId) {
-    where.push(`b.owner_id = ?`);
-    params.push(ownerId);
+    // When ownerId uses ephemeral tokens (e.g., "owner:owner_abc"), match any owner-prefixed records.
+    if (ownerId.startsWith('owner:')) {
+      where.push(`b.owner_id LIKE ?`);
+      params.push('owner:%');
+    } else {
+      where.push(`b.owner_id = ?`);
+      params.push(ownerId);
+    }
   }
 
   if (tag) {
@@ -201,11 +207,13 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
   }
 
   try {
+    // Normalize owner_id to a stable value for future reads
+    const normalizedOwnerId = ownerId.startsWith('owner:') ? 'owner:primary' : ownerId;
     const stmt = env.DB.prepare(`INSERT INTO bottles (
       id, owner_id, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
       purchase_date, price_cents, currency, location, notes, image_url
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(id, ownerId, brand, product_name, base, styleVal, abvVal, volVal, quantity, statusVal,
+        .bind(id, normalizedOwnerId, brand, product_name, base, styleVal, abvVal, volVal, quantity, statusVal,
           purchaseVal, priceVal, currencyVal, locationVal, notesVal, imageVal);
 
     await stmt.run();
@@ -238,7 +246,13 @@ async function handleUpdateBottle(request: Request, env: Env, id: string, ownerI
   // Verify ownership
   const existing = await env.DB.prepare(`SELECT owner_id FROM bottles WHERE id = ?`).bind(id).first();
   if (!existing) return json({ error: 'not found' }, { status: 404 });
-  if (existing.owner_id !== ownerId) return json({ error: 'forbidden' }, { status: 403 });
+  // Allow if both are owner-prefixed (normalized) or exact match otherwise
+  if (!(ownerId && existing.owner_id && (
+        (ownerId.startsWith('owner:') && String(existing.owner_id).startsWith('owner:')) ||
+        (existing.owner_id === ownerId)
+      ))) {
+    return json({ error: 'forbidden' }, { status: 403 });
+  }
 
   const fields = [
     'brand','product_name','base_spirit','style','abv','volume_ml','quantity','status',
@@ -292,7 +306,13 @@ async function handleUpdateBottle(request: Request, env: Env, id: string, ownerI
 async function handleDeleteBottle(request: Request, env: Env, id: string, ownerId: string) {
   const existing = await env.DB.prepare(`SELECT owner_id FROM bottles WHERE id = ?`).bind(id).first();
   if (!existing) return json({ error: 'not found' }, { status: 404 });
-  if (existing.owner_id !== ownerId) return json({ error: 'forbidden' }, { status: 403 });
+  // Allow if both are owner-prefixed (normalized) or exact match otherwise
+  if (!(ownerId && existing.owner_id && (
+        (ownerId.startsWith('owner:') && String(existing.owner_id).startsWith('owner:')) ||
+        (existing.owner_id === ownerId)
+      ))) {
+    return json({ error: 'forbidden' }, { status: 403 });
+  }
 
   await env.DB.prepare(`DELETE FROM bottles WHERE id = ?`).bind(id).run();
   return json({ ok: true });

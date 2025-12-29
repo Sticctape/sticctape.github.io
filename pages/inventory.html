@@ -63,7 +63,6 @@
   <div class="modal bottle-modal">
     <div class="modal-header">
       <h2 id="bottleModalTitle">Add Bottle</h2>
-      <button class="modal-close" id="bottleModalClose" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <form id="bottleForm">
@@ -170,7 +169,6 @@
   <div class="modal delete-modal">
     <div class="modal-header">
       <h2>Confirm Delete</h2>
-      <button class="modal-close" id="deleteModalClose" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <p id="deleteMessage">Are you sure you want to remove this bottle from inventory?</p>
@@ -251,6 +249,20 @@
     }
     
     console.log('✅ All DOM elements ready, setting up...');
+
+    // Ensure modals are top-level so z-index can outrank navbar
+    try {
+      if (bottleModal && bottleModal.parentElement !== document.body) {
+        document.body.appendChild(bottleModal);
+        console.log('🔧 Moved bottleModalOverlay to <body>');
+      }
+      if (deleteModal && deleteModal.parentElement !== document.body) {
+        document.body.appendChild(deleteModal);
+        console.log('🔧 Moved deleteModalOverlay to <body>');
+      }
+    } catch (moveErr) {
+      console.warn('⚠️ Could not move modals to body:', moveErr);
+    }
 
     // Delegate bottle card action buttons so clicks survive re-renders
     bottleGrid.addEventListener('click', (e) => {
@@ -658,11 +670,9 @@
     
     // Verify event listener was added
     console.log('🔵 Event listener added to button');
-    document.getElementById('bottleModalClose').addEventListener('click', closeBottleModal);
     document.getElementById('bottleModalCancel').addEventListener('click', closeBottleModal);
     bottleForm.addEventListener('submit', submitBottle);
     
-    document.getElementById('deleteModalClose').addEventListener('click', closeDeleteModal);
     document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
     deleteConfirmBtn.addEventListener('click', confirmDelete);
     
