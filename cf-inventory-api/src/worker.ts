@@ -134,18 +134,24 @@ async function isValidStaffToken(req: Request, env: Env): Promise<boolean> {
     // 1. Legacy: simple "staff_" prefix (for backwards compatibility)
     // 2. JWT: signed JWT token where sub='staff'
     if (token.startsWith('staff_')) {
+      console.log('[STAFF_AUTH] Recognized staff_ prefix token');
       return true;
     }
     
     // Try to verify as JWT
+    console.log('[STAFF_AUTH] Attempting JWT verification, token length:', token.length);
+    console.log('[STAFF_AUTH] JWT_SECRET present:', !!env.JWT_SECRET);
     try {
       const sub = await verifyJWT(token, env);
+      console.log('[STAFF_AUTH] JWT verified, sub:', sub);
       return sub === 'staff';
-    } catch (e) {
+    } catch (e: any) {
       // Not a valid JWT, not a staff_ token
+      console.log('[STAFF_AUTH] JWT verification failed:', e?.message || String(e));
       return false;
     }
   }
+  console.log('[STAFF_AUTH] No Bearer token found in Authorization header');
   return false;
 }
 
