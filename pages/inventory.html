@@ -2,6 +2,14 @@
   <!-- Header controls -->
   <div class="inventory-header">
     <div class="inventory-search-row">
+      <div class="view-toggle" aria-label="Inventory view mode">
+        <button id="gridViewBtn" class="view-btn active" type="button" aria-label="Grid view">
+          <span class="icon-grid" aria-hidden="true"></span>
+        </button>
+        <button id="listViewBtn" class="view-btn" type="button" aria-label="List view">
+          <span class="icon-list" aria-hidden="true"></span>
+        </button>
+      </div>
       <input 
         type="text" 
         id="inventorySearch" 
@@ -206,6 +214,9 @@
         <img id="imagePreviewImg" alt="Bottle image preview" />
       </div>
     </div>
+    <div class="modal-footer">
+      <button type="button" class="close-btn" id="closePreviewBtn">Close</button>
+    </div>
   </div>
   </div>
 
@@ -216,12 +227,13 @@
   const API_BASE = 'https://bar.streeter.cc/api';
   const API_ADMIN = 'https://bar.streeter.cc/api/admin';
   
-  // Local dev mode: Set to true to test without CF Access
-  const LOCAL_DEV_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  // Local dev mode disabled so localhost uses the real API (CF Access removed)
+  const LOCAL_DEV_MODE = false;
   console.log('🔵 LOCAL_DEV_MODE:', LOCAL_DEV_MODE, 'hostname:', window.location.hostname);
   
   let allBottles = [];
   let isOwner = false;
+  let viewMode = 'grid';
   let currentFilters = {
     search: '',
     selectedTypes: new Set()
@@ -257,6 +269,8 @@
     const emptyState = document.getElementById('emptyState');
     const addBottlePrompt = document.getElementById('addBottlePrompt');
     const searchInput = document.getElementById('inventorySearch');
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const listViewBtn = document.getElementById('listViewBtn');
     const addBottleBtn = document.getElementById('addBottleBtn');
     const baseSpiritFilters = document.getElementById('baseSpiritFilters');
     const mixerFilters = document.getElementById('mixerFilters');
@@ -287,6 +301,8 @@
       bottleGrid: !!bottleGrid,
       addBottleBtn: !!addBottleBtn,
       searchInput: !!searchInput,
+      gridViewBtn: !!gridViewBtn,
+      listViewBtn: !!listViewBtn,
       baseSpiritFilters: !!baseSpiritFilters
     });
     
@@ -318,16 +334,33 @@
 
     // Delegate bottle card action buttons so clicks survive re-renders
     bottleGrid.addEventListener('click', (e) => {
-      // Image preview (maximize in modal) – available to all
-      const imgEl = e.target.closest('article.bottle-card img');
-      if (imgEl) {
+      // Check for owner-only buttons first (higher priority)
+      if (isOwner) {
+        const editBtn = e.target.closest('.edit-bottle-btn');
+        if (editBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          openEditModal(editBtn.dataset.id);
+          return;
+        }
+        const deleteBtn = e.target.closest('.delete-bottle-btn');
+        if (deleteBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          openDeleteModal(deleteBtn.dataset.id);
+          return;
+        }
+      }
+      
+      // Image preview modal for entire card (unless clicking action buttons)
+      const card = e.target.closest('article.bottle-card');
+      if (card) {
         e.preventDefault();
         e.stopPropagation();
-        // Populate preview details
-        const card = imgEl.closest('article.bottle-card');
-        const id = card ? card.getAttribute('data-id') : null;
+        const id = card.getAttribute('data-id');
         const bottle = id ? allBottles.find(b => String(b.id) === String(id)) : null;
-        if (imagePreviewImg) imagePreviewImg.src = imgEl.src;
+        const imgEl = card.querySelector('img');
+        if (imagePreviewImg && imgEl) imagePreviewImg.src = imgEl.src;
         if (bottle) {
           if (previewTitle) previewTitle.textContent = `${bottle.brand || ''} ${bottle.product_name || ''}`.trim();
           if (previewBaseSpirit) previewBaseSpirit.textContent = bottle.base_spirit || '';
@@ -356,20 +389,6 @@
         imagePreviewOverlay.classList.add('active');
         return;
       }
-      if (!isOwner) return;
-      const editBtn = e.target.closest('.edit-bottle-btn');
-      if (editBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openEditModal(editBtn.dataset.id);
-        return;
-      }
-      const deleteBtn = e.target.closest('.delete-bottle-btn');
-      if (deleteBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openDeleteModal(deleteBtn.dataset.id);
-      }
     });
   
     // Placeholder images based on spirit type
@@ -377,10 +396,10 @@
       bourbon: 'assets/bottles/whiskey.png',
       whiskey: 'assets/bottles/whiskey.png',
       rye: 'assets/bottles/whiskey.png',
-      scotch: 'assets/bottles/whiskey.png',
-      rum: 'assets/bottles/whiskey.png',
-      gin: 'assets/bottles/whiskey.png',
-      vodka: 'assets/bottles/whiskey.png',
+      scotch: 'assets/bottles/scotch.png',
+      rum: 'assets/bottles/rum.png',
+      gin: 'assets/bottles/gin.png',
+      vodka: 'assets/bottles/vodka.png',
       tequila: 'assets/bottles/whiskey.png',
       mezcal: 'assets/bottles/whiskey.png',
       brandy: 'assets/bottles/whiskey.png',
@@ -490,6 +509,7 @@
 
     // Render bottles to grid
     function renderBottles() {
+    bottleGrid.classList.toggle('list-view', viewMode === 'list');
     const filtered = getFilteredBottles();
     
     if (filtered.length === 0) {
@@ -507,14 +527,20 @@
       return `
         <article class="bottle-card" data-id="${bottle.id}">
           <img class="${isPlaceholder ? 'placeholder-img' : ''}" src="${imageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
-          <h3>${bottle.brand || 'Unknown'}</h3>
-          <p class="bottle-product">${bottle.product_name || ''}</p>
-          <p class="bottle-details">
-            <span class="bottle-spirit">${bottle.base_spirit || ''}</span>
-            ${bottle.volume_ml ? `<span class="bottle-volume">${bottle.volume_ml}ml</span>` : ''}
-          </p>
-          ${bottle.location ? `<p class="bottle-location">📍 ${bottle.location}</p>` : ''}
-          <p class="bottle-quantity">Qty: ${bottle.quantity || 0}</p>
+          <div class="bottle-info">
+            <div class="bottle-title">
+              <h3>${bottle.brand || 'Unknown'}</h3>
+              <p class="bottle-product">${bottle.product_name || ''}</p>
+            </div>
+            <div class="bottle-meta">
+              <p class="bottle-details">
+                <span class="bottle-spirit">${bottle.base_spirit || ''}</span>
+                ${bottle.volume_ml ? `<span class="bottle-volume">${bottle.volume_ml}ml</span>` : ''}
+              </p>
+              ${bottle.location ? `<p class="bottle-location">📍 ${bottle.location}</p>` : ''}
+              <p class="bottle-quantity">Qty: ${bottle.quantity || 0}</p>
+            </div>
+          </div>
           ${isOwner ? `
             <div class="bottle-actions">
               <button class="edit-bottle-btn" data-id="${bottle.id}">Edit</button>
@@ -773,6 +799,20 @@
       console.log('🔵 Add bottle button clicked!');
       openAddModal();
     });
+
+    const setViewMode = (mode) => {
+      viewMode = mode;
+      if (gridViewBtn && listViewBtn) {
+        gridViewBtn.classList.toggle('active', mode === 'grid');
+        listViewBtn.classList.toggle('active', mode === 'list');
+      }
+      renderBottles();
+    };
+
+    if (gridViewBtn && listViewBtn) {
+      gridViewBtn.addEventListener('click', () => setViewMode('grid'));
+      listViewBtn.addEventListener('click', () => setViewMode('list'));
+    }
     
     // Verify event listener was added
     console.log('🔵 Event listener added to button');
@@ -794,6 +834,12 @@
     deleteModal.addEventListener('click', (e) => {
       if (e.target === deleteModal) closeDeleteModal();
     });
+    const closePreviewBtn = document.getElementById('closePreviewBtn');
+    if (closePreviewBtn) {
+      closePreviewBtn.addEventListener('click', () => {
+        imagePreviewOverlay.classList.remove('active');
+      });
+    }
     imagePreviewOverlay.addEventListener('click', (e) => {
       if (e.target === imagePreviewOverlay) {
         imagePreviewOverlay.classList.remove('active');

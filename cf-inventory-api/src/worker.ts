@@ -17,7 +17,8 @@ const ALLOWED_ORIGINS = [
   'https://bar.streeter.cc',
   'https://streeter.cc',
   'https://sticctape.github.io',
-  'http://127.0.0.1:5500', // local dev
+  'http://127.0.0.1:5500',
+  'http://192.168.125.247:5500',
 ];
 
 function getAllowedOrigin(req: Request): string | null {
