@@ -5,6 +5,7 @@ body{
   color:#fff;
   background:#000;
   overflow-x:hidden;
+  color-scheme: dark;
 }
 body::after{
   content:"";
@@ -1027,6 +1028,13 @@ input:checked + .toggle-slider:before {
   color: #fff;
   font-size: 0.95rem;
   font-family: inherit;
+}
+
+/* Dark-themed dropdown menu items for selects */
+.form-group select option,
+.form-group select optgroup {
+  background: rgba(20, 20, 20, 0.95);
+  color: #fff;
 }
 
 .form-group input:focus,
