@@ -285,7 +285,10 @@
         }
       
       console.log('🔵 Not local dev, fetching from API...');
-      const resp = await fetch(`${API_BASE}/bottles`);
+      const resp = await fetch(`${API_BASE}/bottles`, {
+        credentials: 'include',
+        mode: 'cors'
+      });
       console.log('🔵 API response status:', resp.status);
       
       if (resp.ok) {
@@ -492,7 +495,9 @@
         const resp = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(formData),
+          credentials: 'include',
+          mode: 'cors'
         });
         
         if (!resp.ok) {
@@ -532,8 +537,9 @@
         }
         
         const resp = await fetch(`${API_BASE}/bottles/${deletingBottleId}`, {
-          method: 'DELETE'
-        });
+        method: 'DELETE',
+        credentials: 'include',
+        mode: 'cors'
         
         if (!resp.ok) {
           const err = await resp.json();

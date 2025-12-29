@@ -14,6 +14,7 @@ function json(data: unknown, init: ResponseInit = {}) {
 
 const ALLOWED_ORIGINS = [
   'https://bar.streeter.cc',
+  'https://streeter.cc',
   'https://sticctape.github.io',
   'http://localhost:8787', // local dev
 ];
@@ -28,8 +29,9 @@ function withCORS(resp: Response, req?: Request) {
   const h = new Headers(resp.headers);
   const origin = req ? getAllowedOrigin(req) : null;
   if (origin) h.set('Access-Control-Allow-Origin', origin);
+  h.set('Access-Control-Allow-Credentials', 'true');
   h.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  h.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  h.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cf-Access-Jwt-Assertion');
   h.set('Vary', 'Origin');
   return new Response(resp.body, { status: resp.status, headers: h });
 }
