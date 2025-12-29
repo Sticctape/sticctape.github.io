@@ -8,6 +8,10 @@ routes = [
   { pattern = "bar.streeter.cc/api/*", zone_name = "streeter.cc" }
 ]
 
+[vars]
+# Explicitly disable dev header auth in production
+ALLOW_HEADER_DEV = "false"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "streetersdistillery_inventory"
