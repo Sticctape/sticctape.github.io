@@ -446,9 +446,23 @@
     }
     }
 
+    // Expand selected types to handle hierarchy (e.g., whiskey → bourbon+rye+whiskey)
+    function expandSelectedTypes(selected) {
+      const expanded = new Set(selected);
+      if (selected.has('whiskey')) {
+        expanded.add('whiskey');
+        expanded.add('bourbon');
+        expanded.add('rye');
+      }
+      // Add other hierarchical relationships here if desired
+      // For now, scotch remains its own category.
+      return expanded;
+    }
+
     // Filter bottles based on current filters
     function getFilteredBottles() {
     const hasTypeFilters = currentFilters.selectedTypes && currentFilters.selectedTypes.size > 0;
+    const expandedTypes = hasTypeFilters ? expandSelectedTypes(currentFilters.selectedTypes) : null;
     return allBottles.filter(bottle => {
       // Search filter (substring match on brand + product)
       if (currentFilters.search) {
@@ -458,10 +472,10 @@
         if (!brandMatch && !productMatch) return false;
       }
       
-      // Type filters (union of base spirits + mixers)
+      // Type filters (union of base spirits + mixers) with hierarchy
       if (hasTypeFilters) {
         const t = (bottle.base_spirit || '').toLowerCase();
-        if (!currentFilters.selectedTypes.has(t)) return false;
+        if (!expandedTypes.has(t)) return false;
       }
       
       return true;
