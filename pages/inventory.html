@@ -434,7 +434,7 @@
 
     // Open edit modal
     function openEditModal(id) {
-      const bottle = allBottles.find(b => b.id === parseInt(id));
+      const bottle = allBottles.find(b => String(b.id) === String(id));
       if (!bottle) return;
       
       editingBottleId = id;
@@ -495,7 +495,7 @@
         // Local dev mode: Simulate adding to local array
         if (LOCAL_DEV_MODE) {
           if (editingBottleId !== null) {
-            const index = allBottles.findIndex(b => b.id === parseInt(editingBottleId));
+            const index = allBottles.findIndex(b => String(b.id) === String(editingBottleId));
             if (index !== -1) {
               allBottles[index] = { ...allBottles[index], ...formData };
             }
@@ -551,7 +551,7 @@
 
     // Open delete modal
     function openDeleteModal(id) {
-      const bottle = allBottles.find(b => b.id === parseInt(id));
+      const bottle = allBottles.find(b => String(b.id) === String(id));
       if (!bottle) return;
       
       deletingBottleId = id;
@@ -566,7 +566,7 @@
       try {
         // Local dev mode: Remove from local array
         if (LOCAL_DEV_MODE) {
-          allBottles = allBottles.filter(b => b.id !== parseInt(deletingBottleId));
+          allBottles = allBottles.filter(b => String(b.id) !== String(deletingBottleId));
           closeDeleteModal();
           renderBottles();
           return;
