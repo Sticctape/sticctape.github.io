@@ -285,20 +285,36 @@
         }
       
       console.log('🔵 Not local dev, fetching from API...');
+      
+      // Check if we're authenticated via CF Access (owner only)
+      const authCheck = await fetch(`${API_BASE}/auth/check`, {
+        credentials: 'include',
+        mode: 'cors'
+      });
+      
+      if (authCheck.ok) {
+        const authData = await authCheck.json();
+        if (authData.authenticated) {
+          console.log('✅ Authenticated as owner:', authData.ownerId);
+          isOwner = true;
+          addBottleBtn.classList.remove('is-hidden');
+          addBottlePrompt.classList.remove('is-hidden');
+        } else {
+          console.log('⛔ Not authenticated - read-only mode');
+          isOwner = false;
+        }
+      } else {
+        console.log('⚠️ Auth check failed, assuming read-only');
+        isOwner = false;
+      }
+      
+      // Fetch bottles
       const resp = await fetch(`${API_BASE}/bottles`, {
         credentials: 'include',
         mode: 'cors'
       });
-      console.log('🔵 API response status:', resp.status);
       
-      if (resp.ok) {
-        console.log('✅ API call successful - user has CF Access');
-        isOwner = true;
-        addBottleBtn.classList.remove('is-hidden');
-        addBottlePrompt.classList.remove('is-hidden');
-      } else if (resp.status === 401 || resp.status === 403) {
-        console.log('⛔ API returned', resp.status, '- no CF Access, read-only mode');
-      } else {
+      if (!resp.ok) {
         throw new Error(`Failed to load bottles: ${resp.statusText}`);
       }
       

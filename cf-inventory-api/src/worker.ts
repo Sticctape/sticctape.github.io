@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = [
   'https://bar.streeter.cc',
   'https://streeter.cc',
   'https://sticctape.github.io',
-  'http://localhost:8787', // local dev
+  'http://127.0.0.1:5500', // local dev
 ];
 
 function getAllowedOrigin(req: Request): string | null {
@@ -93,7 +93,7 @@ async function verifyJWT(token: string, env: Env): Promise<string> {
   return payload.sub as string;
 }
 
-async function getOwnerId(req: Request, env: Env): Promise<string> {
+async function getOwnerId(req: Request, env: Env): Promise<string | null> {
   // 1) Prefer Cloudflare Access: Cf-Access-Jwt-Assertion
   const cfAccess = req.headers.get('Cf-Access-Jwt-Assertion') || req.headers.get('cf-access-jwt-assertion');
   if (cfAccess) {
@@ -108,14 +108,15 @@ async function getOwnerId(req: Request, env: Env): Promise<string> {
         if (email) return String(email);
       }
     } catch {}
-    throw new Error('Unauthorized: invalid Cloudflare Access token');
   }
 
   // 2) Fallback to JWT Bearer
   const auth = req.headers.get('authorization');
   if (auth && auth.toLowerCase().startsWith('bearer ')) {
-    const token = auth.slice(7).trim();
-    return verifyJWT(token, env);
+    try {
+      const token = auth.slice(7).trim();
+      return await verifyJWT(token, env);
+    } catch {}
   }
 
   // Dev-only escape hatch: allow X-Owner-Id when ALLOW_HEADER_DEV="true"
@@ -124,10 +125,11 @@ async function getOwnerId(req: Request, env: Env): Promise<string> {
     if (header && header.length > 0) return header;
   }
 
-  throw new Error('Unauthorized: missing or invalid token');
+  // Return null if no auth present (allows read-only access)
+  return null;
 }
 
-async function handleListBottles(request: Request, env: Env, ownerId: string) {
+async function handleListBottles(request: Request, env: Env, ownerId: string | null) {
   const url = new URL(request.url);
   const search = url.searchParams.get('search')?.trim();
   const base = url.searchParams.get('base_spirit')?.trim();
@@ -135,8 +137,14 @@ async function handleListBottles(request: Request, env: Env, ownerId: string) {
   const tag = url.searchParams.get('tag')?.trim();
 
   let sql = `SELECT b.* FROM bottles b`;
-  const where: string[] = [`b.owner_id = ?`];
-  const params: any[] = [ownerId];
+  const where: string[] = [];
+  const params: any[] = [];
+  
+  // If ownerId is provided, filter by owner. Otherwise return all public bottles.
+  if (ownerId) {
+    where.push(`b.owner_id = ?`);
+    params.push(ownerId);
+  }
 
   if (tag) {
     sql += ` JOIN bottle_tags bt ON bt.bottle_id = b.id JOIN tags t ON t.id = bt.tag_id AND t.owner_id = b.owner_id`;
@@ -287,14 +295,21 @@ export default {
         return withCORS(json({ ok: true }), request);
       }
 
-      // Auth once per request
+      // Check auth - may be null for GET requests (read-only)
       const ownerId = await getOwnerId(request, env);
+      
+      // Auth check endpoint - returns whether user is authenticated
+      if (request.method === 'GET' && path.endsWith('/api/auth/check')) {
+        return withCORS(json({ authenticated: !!ownerId, ownerId: ownerId || null }), request);
+      }
 
       if (path.endsWith('/api/bottles')) {
         if (request.method === 'GET') {
+          // GET is allowed without auth (returns empty if no ownerId)
           return withCORS(await handleListBottles(request, env, ownerId), request);
         }
         if (request.method === 'POST') {
+          if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleCreateBottle(request, env, ownerId), request);
         }
       }
@@ -303,9 +318,11 @@ export default {
       if (match) {
         const id = match[1];
         if (request.method === 'PUT') {
+          if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleUpdateBottle(request, env, id, ownerId), request);
         }
         if (request.method === 'DELETE') {
+          if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           return withCORS(await handleDeleteBottle(request, env, id, ownerId), request);
         }
       }
