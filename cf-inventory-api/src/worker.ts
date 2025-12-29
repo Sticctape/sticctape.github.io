@@ -319,9 +319,9 @@ export default {
 
       if (path.endsWith('/api/bottles')) {
         if (request.method === 'GET') {
-          // GET allowed for owner (CF Access) or staff (Bearer token)
+          // GET allowed ONLY for owner or staff - anonymous gets 401
           if (!ownerId && !isStaff) {
-            return withCORS(json({ bottles: [] }), request);
+            return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
           }
           return withCORS(await handleListBottles(request, env, ownerId), request);
         }

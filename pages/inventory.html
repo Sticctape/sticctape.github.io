@@ -307,12 +307,13 @@
         addBottleBtn.classList.remove('is-hidden');
         addBottlePrompt.classList.remove('is-hidden');
       } else {
-        console.log('⛔ Not owner - staff or anonymous mode');
+        console.log('✅ Authenticated as STAFF (read-only)');
         isOwner = false;
       }
       
       // Fetch bottles
       const resp = await fetch(`${API_BASE}/bottles`, {
+        headers: getAuthHeaders(),
         credentials: 'include',
         mode: 'cors'
       });
