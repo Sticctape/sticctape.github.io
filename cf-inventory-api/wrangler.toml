@@ -1,0 +1,19 @@
+name = "streetersdistillery-inventory-api"
+main = "src/worker.ts"
+compatibility_date = "2025-01-05"
+workers_dev = true
+
+# Production route: bar.streeter.cc/api/*
+routes = [
+  { pattern = "bar.streeter.cc/api/*", zone_name = "streeter.cc" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "streetersdistillery_inventory"
+database_id = "${D1_DATABASE_ID}"
+
+# Uncomment if you add R2 later for images
+#[[r2_buckets]]
+#binding = "IMAGES"
+#bucket_name = "streetersdistillery-images"

@@ -216,15 +216,15 @@
       "clean": "Woodford Reserve Bourbon\nGreen Chartreuse\nLemon Juice\nSimple Syrup\nAngostura Bitters",
       "instructions": "Shake all ingredients with ice and strain into a coupe glass.\nGarnish with a lemon twist."
     },
-    "woodward-avenue": {
-      "category": "the-essentials",
-      "name": "Woodward Avenue",
-      "img": "assets/glasses/woodwardave.png",
-      "ingredients": "Bourbon | Chartreuse | Lemon | Simple | Angostura",
+    "tropic-night-watch": {
+      "category": "special-creations",
+      "name": "Tropic Night Watch",
+      "img": "assets/glasses/tropicnightwatch.png",
+      "ingredients": "Aged Rum | Honey | Coffee Liqueur | Lemon",
       "taste": "Sweet • Dry",
-      "full": "2 oz Woodford Reserve Bourbon\n0.5 oz Green Chartreuse\n0.75 oz Lemon Juice\n0.5 oz Simple Syrup\n2 Dashes Angostura Bitters",
-      "clean": "Woodford Reserve Bourbon\nGreen Chartreuse\nLemon Juice\nSimple Syrup\nAngostura Bitters",
-      "instructions": "Shake all ingredients with ice and strain into a coupe glass.\nGarnish with a lemon twist."
+      "full": "1.5 oz Doorlys 12 year Rum\n0.5 oz Honey Syrup\n0.5 oz Mr. Black Coffee Liqueur\nLemon Twist",
+      "clean": "Doorlys 12 year Rum\nHoney Syrup\nMr. Black Coffee Liqueur\nLemon Twist",
+      "instructions": "Stir all ingredients with ice and strain into a rocks glass over one large ice cube.\nExpress a lemon twist over the drink and garnish."
     }
   }
 }
