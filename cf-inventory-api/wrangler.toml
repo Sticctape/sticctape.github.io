@@ -8,6 +8,10 @@ routes = [
   { pattern = "bar.streeter.cc/api/*", zone_name = "streeter.cc" }
 ]
 
+[env.production]
+vars = { ALLOWED_ORIGIN = "https://streeter.cc" }
+secrets = ["STAFF_API_TOKEN", "OWNER_PASSWORD"]
+
 [vars]
 # Explicitly disable dev header auth in production
 ALLOW_HEADER_DEV = "false"

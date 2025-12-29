@@ -94,21 +94,16 @@ async function verifyJWT(token: string, env: Env): Promise<string> {
 }
 
 async function getOwnerId(req: Request, env: Env): Promise<string | null> {
-  // OWNER IDENTIFICATION: Only from Cloudflare Access JWT
-  // This identifies who the OWNER is. Staff/customers cannot use their token to claim ownership.
-  const cfAccess = req.headers.get('Cf-Access-Jwt-Assertion') || req.headers.get('cf-access-jwt-assertion');
-  if (cfAccess) {
-    // Parse payload only. CF Access already gated the route; use 'email' or 'sub' as identity.
-    try {
-      const parts = cfAccess.split('.');
-      if (parts.length === 3) {
-        const payloadB64 = parts[1];
-        const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payloadB64.length / 4) * 4, '=')), c => c.charCodeAt(0)));
-        const payload = JSON.parse(jsonStr);
-        const email = payload.email || payload.sub;
-        if (email) return String(email);
-      }
-    } catch {}
+  // OWNER IDENTIFICATION: from owner token (Bearer header)
+  // Owner token gives full read+write access and identifies the owner.
+  const auth = req.headers.get('authorization');
+  if (auth && auth.toLowerCase().startsWith('bearer ')) {
+    const token = auth.slice(7).trim();
+    if (token && token.startsWith('owner_')) {
+      // This is an owner token. Return as owner identity.
+      // In production, verify the token signature and expiry.
+      return `owner:${token}`;
+    }
   }
 
   // Dev-only escape hatch: allow X-Owner-Id when ALLOW_HEADER_DEV="true"
@@ -117,7 +112,7 @@ async function getOwnerId(req: Request, env: Env): Promise<string | null> {
     if (header && header.length > 0) return header;
   }
 
-  // Return null if no CF Access present (allows read-only access for staff via token verification)
+  // Return null if no owner token present
   return null;
 }
 
@@ -127,9 +122,10 @@ function isValidStaffToken(req: Request): boolean {
   const auth = req.headers.get('authorization');
   if (auth && auth.toLowerCase().startsWith('bearer ')) {
     const token = auth.slice(7).trim();
-    // In production, verify the token is valid (HMAC signature, expiry, etc.)
-    // For now: accept any non-empty token as valid staff access
-    return token && token.length > 0;
+    if (token && token.startsWith('staff_')) {
+      // This is a staff token. In production, verify the token signature and expiry.
+      return true;
+    }
   }
   return false;
 }

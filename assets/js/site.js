@@ -711,8 +711,36 @@ document.querySelectorAll('nav.site-nav ul a')
     const password = loginPassword.value;
 
     try {
-      // Try staff login first
-      let authResp = await fetch('https://streeter.cc/api/staff-auth', {
+      // Try owner login first
+      let authResp = await fetch('https://streeter.cc/api/owner-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      if (authResp.ok) {
+        // Owner authentication succeeded
+        loginError.classList.add('is-hidden');
+        const authData = await authResp.json();
+        localStorage.setItem('isOwner', 'true');
+        localStorage.setItem('ownerToken', authData.token);
+        updateLoginUI();
+        loginOverlay.classList.remove('active');
+        loginForm.reset();
+        if (typeof showAuthBanner === 'function') showAuthBanner('Owner authenticated');
+        // close mobile nav if it's open
+        try {
+          if (nav && nav.classList.contains('open')) {
+            nav.classList.remove('open');
+            document.body.classList.remove('menu-open');
+            if (toggle && typeof toggle.setAttribute === 'function') toggle.setAttribute('aria-expanded', 'false');
+          }
+        } catch (e) { /* silent */ }
+        return;
+      }
+
+      // Try staff login
+      authResp = await fetch('https://streeter.cc/api/staff-auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -767,7 +795,7 @@ document.querySelectorAll('nav.site-nav ul a')
         return;
       }
 
-      // Both authentication attempts failed
+      // All authentication attempts failed
       loginError.textContent = 'Incorrect password';
       loginError.classList.remove('is-hidden');
     } catch (err) {
@@ -779,11 +807,13 @@ document.querySelectorAll('nav.site-nav ul a')
 
   // Update UI based on login status (staff or customer)
   function updateLoginUI() {
+    const isOwner = localStorage.getItem('isOwner') === 'true';
     const isStaff = localStorage.getItem('isStaff') === 'true';
     const isCustomer = localStorage.getItem('isCustomer') === 'true';
-    const isLoggedIn = isStaff || isCustomer;
+    const isLoggedIn = isOwner || isStaff || isCustomer;
     loginBtn.classList.toggle('is-hidden', isLoggedIn);
     logoutBtn.classList.toggle('is-hidden', !isLoggedIn);
+    document.body.classList.toggle('is-owner', isOwner);
     document.body.classList.toggle('is-staff', isStaff);
     document.body.classList.toggle('is-customer', isCustomer);
 
@@ -819,10 +849,12 @@ document.querySelectorAll('nav.site-nav ul a')
     }, ms);
   }
 
-  // Logout handler (clears staff and customer flags)
+  // Logout handler (clears owner, staff and customer flags)
   logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('isOwner');
     localStorage.removeItem('isStaff');
     localStorage.removeItem('isCustomer');
+    localStorage.removeItem('ownerToken');
     localStorage.removeItem('staffToken');
     localStorage.removeItem('customerToken');
     updateLoginUI();

@@ -202,13 +202,15 @@
   let editingBottleId = null;
   let deletingBottleId = null;
 
-  // Helper to get auth headers (include staff token if present)
+  // Helper to get auth headers (include owner or staff token if present)
   function getAuthHeaders() {
     const headers = { 'Content-Type': 'application/json' };
+    const ownerToken = localStorage.getItem('ownerToken');
     const staffToken = localStorage.getItem('staffToken');
-    if (staffToken) {
-      headers['Authorization'] = `Bearer ${staffToken}`;
-      console.log('🔵 Adding staff token to request');
+    const token = ownerToken || staffToken;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('🔵 Adding auth token to request');
     }
     return headers;
   }
@@ -297,30 +299,15 @@
       
       console.log('🔵 Not local dev, fetching from API...');
       
-      // Check authentication status (owner vs staff)
-      // Use /api/admin/auth/check which is CF Access protected
-      // CF Access sends JWT automatically; don't use credentials to avoid preflight
-      const authCheck = await fetch(`${API_ADMIN}/auth/check`, {
-        mode: 'cors'
-      });
-      
-      if (authCheck.ok) {
-        const authData = await authCheck.json();
-        // Only owner (CF Access authenticated) gets write access
-        if (authData.isOwner) {
-          console.log('✅ Authenticated as OWNER:', authData.ownerId);
-          isOwner = true;
-          addBottleBtn.classList.remove('is-hidden');
-          addBottlePrompt.classList.remove('is-hidden');
-        } else if (authData.isStaff) {
-          console.log('✅ Authenticated as STAFF (read-only)');
-          isOwner = false;
-        } else {
-          console.log('⛔ Not authenticated - anonymous mode');
-          isOwner = false;
-        }
+      // Check if user is owner (from login)
+      const isOwnerLoggedIn = localStorage.getItem('isOwner') === 'true';
+      if (isOwnerLoggedIn) {
+        console.log('✅ Authenticated as OWNER');
+        isOwner = true;
+        addBottleBtn.classList.remove('is-hidden');
+        addBottlePrompt.classList.remove('is-hidden');
       } else {
-        console.log('⚠️ Auth check failed, assuming anonymous');
+        console.log('⛔ Not owner - staff or anonymous mode');
         isOwner = false;
       }
       
