@@ -298,8 +298,8 @@
       console.log('🔵 Not local dev, fetching from API...');
       
       // Check authentication status (owner vs staff)
-      // Use public /api/auth/check which both owner and staff can access
-      const authCheck = await fetch(`${API_BASE}/auth/check`, {
+      // Use /api/admin/auth/check which is CF Access protected - this gives us the owner JWT
+      const authCheck = await fetch(`${API_ADMIN}/auth/check`, {
         headers: getAuthHeaders(),
         credentials: 'include',
         mode: 'cors'
