@@ -106,6 +106,12 @@ async function getOwnerId(req: Request, env: Env): Promise<string | null> {
     }
   }
 
+  // Fallback: accept owner token in X-Staff-Token header (matches POS worker usage)
+  const alt = req.headers.get('x-staff-token');
+  if (alt && alt.startsWith('owner_')) {
+    return `owner:${alt}`;
+  }
+
   // Dev-only escape hatch: allow X-Owner-Id when ALLOW_HEADER_DEV="true"
   if (env.ALLOW_HEADER_DEV === 'true') {
     const header = req.headers.get('x-owner-id');
@@ -177,18 +183,35 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
     status = 'sealed', purchase_date, price_cents, currency = 'USD', location, notes, image_url, tags
   } = body || {};
 
+  // Normalize undefined -> null for optional fields (D1 rejects undefined)
+  const base = base_spirit ?? null;
+  const styleVal = style ?? null;
+  const abvVal = abv ?? null;
+  const volVal = volume_ml ?? null;
+  const statusVal = status ?? null;
+  const purchaseVal = purchase_date ?? null;
+  const priceVal = price_cents ?? null;
+  const currencyVal = currency ?? null;
+  const locationVal = location ?? null;
+  const notesVal = notes ?? null;
+  const imageVal = image_url ?? null;
+
   if (!brand || !product_name) {
     return json({ error: 'brand and product_name are required' }, { status: 400 });
   }
 
-  const stmt = env.DB.prepare(`INSERT INTO bottles (
-    id, owner_id, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
-    purchase_date, price_cents, currency, location, notes, image_url
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-  .bind(id, ownerId, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
-        purchase_date, price_cents, currency, location, notes, image_url);
+  try {
+    const stmt = env.DB.prepare(`INSERT INTO bottles (
+      id, owner_id, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
+      purchase_date, price_cents, currency, location, notes, image_url
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .bind(id, ownerId, brand, product_name, base, styleVal, abvVal, volVal, quantity, statusVal,
+          purchaseVal, priceVal, currencyVal, locationVal, notesVal, imageVal);
 
-  await stmt.run();
+    await stmt.run();
+  } catch (err: any) {
+    return json({ error: `insert failed: ${err?.message || err}` }, { status: 500 });
+  }
 
   if (Array.isArray(tags) && tags.length > 0) {
     for (const name of tags) {

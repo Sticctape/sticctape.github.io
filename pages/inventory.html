@@ -251,6 +251,24 @@
     }
     
     console.log('✅ All DOM elements ready, setting up...');
+
+    // Delegate bottle card action buttons so clicks survive re-renders
+    bottleGrid.addEventListener('click', (e) => {
+      if (!isOwner) return;
+      const editBtn = e.target.closest('.edit-bottle-btn');
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditModal(editBtn.dataset.id);
+        return;
+      }
+      const deleteBtn = e.target.closest('.delete-bottle-btn');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteModal(deleteBtn.dataset.id);
+      }
+    });
   
     // Placeholder images based on spirit type
     const spiritPlaceholders = {
@@ -388,25 +406,6 @@
         </article>
       `;
     }).join('');
-    
-    // Attach event listeners for owner actions
-    if (isOwner) {
-      document.querySelectorAll('.edit-bottle-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = btn.dataset.id;
-          openEditModal(id);
-        });
-      });
-      
-      document.querySelectorAll('.delete-bottle-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const id = btn.dataset.id;
-          openDeleteModal(id);
-        });
-      });
-      }
     }
 
     // Open add modal
