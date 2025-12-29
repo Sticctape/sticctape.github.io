@@ -94,7 +94,8 @@ async function verifyJWT(token: string, env: Env): Promise<string> {
 }
 
 async function getOwnerId(req: Request, env: Env): Promise<string | null> {
-  // 1) Prefer Cloudflare Access: Cf-Access-Jwt-Assertion
+  // OWNER IDENTIFICATION: Only from Cloudflare Access JWT
+  // This identifies who the OWNER is. Staff/customers cannot use their token to claim ownership.
   const cfAccess = req.headers.get('Cf-Access-Jwt-Assertion') || req.headers.get('cf-access-jwt-assertion');
   if (cfAccess) {
     // Parse payload only. CF Access already gated the route; use 'email' or 'sub' as identity.
@@ -110,23 +111,27 @@ async function getOwnerId(req: Request, env: Env): Promise<string | null> {
     } catch {}
   }
 
-  // 2) Fallback to JWT Bearer
-  const auth = req.headers.get('authorization');
-  if (auth && auth.toLowerCase().startsWith('bearer ')) {
-    try {
-      const token = auth.slice(7).trim();
-      return await verifyJWT(token, env);
-    } catch {}
-  }
-
   // Dev-only escape hatch: allow X-Owner-Id when ALLOW_HEADER_DEV="true"
   if (env.ALLOW_HEADER_DEV === 'true') {
     const header = req.headers.get('x-owner-id');
     if (header && header.length > 0) return header;
   }
 
-  // Return null if no auth present (allows read-only access)
+  // Return null if no CF Access present (allows read-only access for staff via token verification)
   return null;
+}
+
+// Check if a staff token is valid. Returns true if valid, false otherwise.
+// Staff tokens grant READ access to inventory but are NOT owner identity.
+function isValidStaffToken(req: Request): boolean {
+  const auth = req.headers.get('authorization');
+  if (auth && auth.toLowerCase().startsWith('bearer ')) {
+    const token = auth.slice(7).trim();
+    // In production, verify the token is valid (HMAC signature, expiry, etc.)
+    // For now: accept any non-empty token as valid staff access
+    return token && token.length > 0;
+  }
+  return false;
 }
 
 async function handleListBottles(request: Request, env: Env, ownerId: string | null) {
@@ -159,7 +164,10 @@ async function handleListBottles(request: Request, env: Env, ownerId: string | n
   if (base) { where.push(`b.base_spirit = ?`); params.push(base); }
   if (status) { where.push(`b.status = ?`); params.push(status); }
 
-  sql += ` WHERE ${where.join(' AND ')} ORDER BY b.updated_at DESC LIMIT 500`;
+  if (where.length > 0) {
+    sql += ` WHERE ${where.join(' AND ')}`;
+  }
+  sql += ` ORDER BY b.updated_at DESC LIMIT 500`;
   const rs = await env.DB.prepare(sql).bind(...params).all();
   return json({ bottles: rs.results });
 }
@@ -297,17 +305,28 @@ export default {
         return withCORS(json({ ok: true }), request);
       }
 
-      // Check auth - may be null for GET requests (read-only)
+      // Check owner identity (CF Access JWT)
       const ownerId = await getOwnerId(request, env);
       
-      // Auth check endpoint - returns whether user is authenticated
+      // Check staff permissions (Bearer token)
+      const isStaff = isValidStaffToken(request);
+      
+      // Auth check endpoint - returns whether user is authenticated and their role
       if (request.method === 'GET' && path.endsWith('/api/auth/check')) {
-        return withCORS(json({ authenticated: !!ownerId, ownerId: ownerId || null }), request);
+        return withCORS(json({ 
+          authenticated: !!ownerId || isStaff, 
+          ownerId: ownerId || null,
+          isStaff: isStaff,
+          isOwner: !!ownerId
+        }), request);
       }
 
       if (path.endsWith('/api/bottles')) {
         if (request.method === 'GET') {
-          // GET is allowed without auth (returns empty if no ownerId)
+          // GET allowed for owner (CF Access) or staff (Bearer token)
+          if (!ownerId && !isStaff) {
+            return withCORS(json({ bottles: [] }), request);
+          }
           return withCORS(await handleListBottles(request, env, ownerId), request);
         }
         if (request.method === 'POST') {

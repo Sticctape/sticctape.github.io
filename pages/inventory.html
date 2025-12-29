@@ -202,6 +202,17 @@
   let editingBottleId = null;
   let deletingBottleId = null;
 
+  // Helper to get auth headers (include staff token if present)
+  function getAuthHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    const staffToken = localStorage.getItem('staffToken');
+    if (staffToken) {
+      headers['Authorization'] = `Bearer ${staffToken}`;
+      console.log('🔵 Adding staff token to request');
+    }
+    return headers;
+  }
+
   // Wait for DOM to be ready
   function init() {
     console.log('🔵 Init function called');
@@ -286,26 +297,31 @@
       
       console.log('🔵 Not local dev, fetching from API...');
       
-      // Check if we're authenticated via CF Access (owner only)
-      // Use admin path so CF Access (if configured) can prompt for login
-      const authCheck = await fetch(`${API_ADMIN}/auth/check`, {
+      // Check authentication status (owner vs staff)
+      // Use public /api/auth/check which both owner and staff can access
+      const authCheck = await fetch(`${API_BASE}/auth/check`, {
+        headers: getAuthHeaders(),
         credentials: 'include',
         mode: 'cors'
       });
       
       if (authCheck.ok) {
         const authData = await authCheck.json();
-        if (authData.authenticated) {
-          console.log('✅ Authenticated as owner:', authData.ownerId);
+        // Only owner (CF Access authenticated) gets write access
+        if (authData.isOwner) {
+          console.log('✅ Authenticated as OWNER:', authData.ownerId);
           isOwner = true;
           addBottleBtn.classList.remove('is-hidden');
           addBottlePrompt.classList.remove('is-hidden');
+        } else if (authData.isStaff) {
+          console.log('✅ Authenticated as STAFF (read-only)');
+          isOwner = false;
         } else {
-          console.log('⛔ Not authenticated - read-only mode');
+          console.log('⛔ Not authenticated - anonymous mode');
           isOwner = false;
         }
       } else {
-        console.log('⚠️ Auth check failed, assuming read-only');
+        console.log('⚠️ Auth check failed, assuming anonymous');
         isOwner = false;
       }
       
@@ -505,7 +521,7 @@
         console.log('🔵 Saving bottle:', { method, url, formData });
         const resp = await fetch(url, {
           method,
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(formData),
           credentials: 'include',
           mode: 'cors'
@@ -560,8 +576,7 @@
         
         const resp = await fetch(`${API_ADMIN}/bottles/${deletingBottleId}`, {
           method: 'DELETE',
-          credentials: 'include',
-          mode: 'cors'
+        headers: getAuthHeaders(),
         });
         
         if (!resp.ok) {
