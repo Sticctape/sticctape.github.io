@@ -1,4 +1,4 @@
-name = "streetersdistillery-inventory-api"
+name = "inventory"
 main = "src/worker.ts"
 compatibility_date = "2025-01-05"
 workers_dev = true
@@ -11,7 +11,7 @@ routes = [
 [[d1_databases]]
 binding = "DB"
 database_name = "streetersdistillery_inventory"
-database_id = "${D1_DATABASE_ID}"
+database_id = "a8d583e8-faa0-43b2-97a7-8b600919fe99"
 
 # Uncomment if you add R2 later for images
 #[[r2_buckets]]

@@ -55,9 +55,8 @@ The Worker route will intercept `/api/*` requests automatically.
 # Run locally for testing
 wrangler dev
 
-# Test locally
+# Test locally (Bearer token)
 curl -i http://127.0.0.1:8787/api/health
-curl -s http://127.0.0.1:8787/api/bottles -H "X-Owner-Id: you@example.com"
 ```
 
 ## Example API Calls (Production)
@@ -66,12 +65,12 @@ curl -s http://127.0.0.1:8787/api/bottles -H "X-Owner-Id: you@example.com"
 # Health check
 curl -i https://bar.streeter.cc/api/health
 
-# List bottles
-curl -s https://bar.streeter.cc/api/bottles -H "X-Owner-Id: you@example.com"
+# List bottles (if using Cloudflare Access on the route, no Authorization header is needed)
+curl -s https://bar.streeter.cc/api/bottles
 
-# Create a bottle
+# Create a bottle (with Access enabled)
 curl -s -X POST https://bar.streeter.cc/api/bottles \
-  -H "Content-Type: application/json" -H "X-Owner-Id: you@example.com" \
+  -H "Content-Type: application/json" \
   -d '{
     "brand":"Green Chartreuse",
     "product_name":"Green Chartreuse",
@@ -85,19 +84,24 @@ curl -s -X POST https://bar.streeter.cc/api/bottles \
     "notes":"Keep in fridge after opening"
   }'
 
-# Update a bottle
+# Update a bottle (with Access enabled)
 curl -s -X PUT https://bar.streeter.cc/api/bottles/{bottle-id} \
-  -H "Content-Type: application/json" -H "X-Owner-Id: you@example.com" \
+  -H "Content-Type: application/json" \
   -d '{"status":"open","quantity":1}'
 
-# Delete a bottle
-curl -s -X DELETE https://bar.streeter.cc/api/bottles/{bottle-id} \
-  -H "X-Owner-Id: you@example.com"
+# Delete a bottle (with Access enabled)
+curl -s -X DELETE https://bar.streeter.cc/api/bottles/{bottle-id}
 ```
 
 ## Security & Next Steps
 
-- **Auth**: Currently uses `X-Owner-Id` header for MVP. Replace with Cloudflare Access or JWT tokens.
-- **CORS**: Set to `*` for testing; will tighten to `bar.streeter.cc` or `sticctape.github.io` in production.
+- **Auth**: Two supported modes:
+  1. **Cloudflare Access (recommended)** — gate `bar.streeter.cc/api/*` in the dashboard. The Worker reads `Cf-Access-Jwt-Assertion` and uses `email` as the owner. No code secrets required.
+  2. **JWT Bearer** — set secrets:
+     - `wrangler secret put JWT_SECRET`
+     - Optional: `wrangler secret put JWT_AUD` and `wrangler secret put JWT_ISS` to enforce audience/issuer.
+     - Dev-only: set `ALLOW_HEADER_DEV="true"` for `X-Owner-Id` header locally.
+- **CORS**: Restricted to `https://bar.streeter.cc`, `https://sticctape.github.io`, and `http://localhost:8787`.
+- **Rate limiting**: Best-effort in-memory (60 req/min/IP). For stronger guarantees, move to a Durable Object-based limiter.
 - **Images**: Add R2 bucket + signed upload endpoint for bottle label photos.
 - **Makeable Endpoint**: Add `/api/makeable` to return recipes you can make with current inventory.

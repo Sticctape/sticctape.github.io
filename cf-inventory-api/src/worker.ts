@@ -1,6 +1,10 @@
 export interface Env {
   DB: D1Database;
   // IMAGES: R2Bucket; // future
+  JWT_SECRET?: string;        // set via `wrangler secret put JWT_SECRET`
+  JWT_AUD?: string;           // optional audience check
+  JWT_ISS?: string;           // optional issuer check
+  ALLOW_HEADER_DEV?: string;  // if "true", allow X-Owner-Id for local dev only
 }
 
 function json(data: unknown, init: ResponseInit = {}) {
@@ -8,33 +12,120 @@ function json(data: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
-function withCORS(resp: Response) {
+const ALLOWED_ORIGINS = [
+  'https://bar.streeter.cc',
+  'https://sticctape.github.io',
+  'http://localhost:8787', // local dev
+];
+
+function getAllowedOrigin(req: Request): string | null {
+  const origin = req.headers.get('Origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) return origin;
+  return null;
+}
+
+function withCORS(resp: Response, req?: Request) {
   const h = new Headers(resp.headers);
-  h.set('Access-Control-Allow-Origin', '*'); // TODO tighten to your site origin
+  const origin = req ? getAllowedOrigin(req) : null;
+  if (origin) h.set('Access-Control-Allow-Origin', origin);
   h.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  h.set('Access-Control-Allow-Headers', 'Content-Type, X-Owner-Id, Authorization');
+  h.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  h.set('Vary', 'Origin');
   return new Response(resp.body, { status: resp.status, headers: h });
 }
 
 function corsPreflight(req: Request) {
   if (req.method === 'OPTIONS') {
-    return withCORS(new Response(null, { status: 204 }));
+    const origin = getAllowedOrigin(req);
+    if (!origin) return new Response('CORS origin not allowed', { status: 403 });
+    return withCORS(new Response(null, { status: 204 }), req);
   }
 }
 
-async function getOwnerId(req: Request): Promise<string> {
-  // MVP: use a header to simulate auth. Replace with Cloudflare Access/JWT later.
-  const header = req.headers.get('x-owner-id');
-  if (header && header.length > 0) return header;
-  // Fallback to a cookie or query param for dev, if needed
-  const url = new URL(req.url);
-  const qp = url.searchParams.get('owner');
-  if (qp) return qp;
-  throw new Error('Missing owner identity. Provide X-Owner-Id header for now.');
+// Best-effort in-memory rate limit (per Worker instance). For stronger guarantees, move to Durable Object.
+const rlBucket = new Map<string, { tokens: number; ts: number }>();
+const RL_CAP = 60;          // max requests in window
+const RL_WINDOW_MS = 60_000; // 1 minute
+
+function enforceRateLimit(req: Request): boolean {
+  const ip = req.headers.get('CF-Connecting-IP') || 'unknown';
+  const now = Date.now();
+  const entry = rlBucket.get(ip) || { tokens: RL_CAP, ts: now };
+  const elapsed = now - entry.ts;
+  const refill = Math.floor(elapsed / RL_WINDOW_MS) * RL_CAP;
+  entry.tokens = Math.min(RL_CAP, entry.tokens + refill);
+  entry.ts = elapsed >= RL_WINDOW_MS ? now : entry.ts;
+  if (entry.tokens <= 0) {
+    rlBucket.set(ip, entry);
+    return false;
+  }
+  entry.tokens -= 1;
+  rlBucket.set(ip, entry);
+  return true;
 }
 
-async function handleListBottles(request: Request, env: Env) {
-  const ownerId = await getOwnerId(request);
+// HS256 JWT verification (Bearer token). `sub` becomes ownerId. Optional aud/iss checks.
+async function verifyJWT(token: string, env: Env): Promise<string> {
+  if (!env.JWT_SECRET) throw new Error('Missing JWT secret');
+  const parts = token.split('.');
+  if (parts.length !== 3) throw new Error('Invalid JWT');
+  const [headerB64, payloadB64, sigB64] = parts;
+  const enc = new TextEncoder();
+
+  const toBytes = (b64url: string) => Uint8Array.from(atob(b64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(b64url.length / 4) * 4, '=')), c => c.charCodeAt(0));
+
+  const header = JSON.parse(new TextDecoder().decode(toBytes(headerB64)));
+  if (header.alg !== 'HS256') throw new Error('Unsupported alg');
+
+  const key = await crypto.subtle.importKey('raw', enc.encode(env.JWT_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+  const data = enc.encode(`${headerB64}.${payloadB64}`);
+  const signatureValid = await crypto.subtle.verify('HMAC', key, toBytes(sigB64), data);
+  if (!signatureValid) throw new Error('Bad signature');
+
+  const payload = JSON.parse(new TextDecoder().decode(toBytes(payloadB64)));
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp && now > payload.exp) throw new Error('Token expired');
+  if (env.JWT_AUD && payload.aud !== env.JWT_AUD) throw new Error('Bad aud');
+  if (env.JWT_ISS && payload.iss !== env.JWT_ISS) throw new Error('Bad iss');
+  if (!payload.sub) throw new Error('Missing sub');
+  return payload.sub as string;
+}
+
+async function getOwnerId(req: Request, env: Env): Promise<string> {
+  // 1) Prefer Cloudflare Access: Cf-Access-Jwt-Assertion
+  const cfAccess = req.headers.get('Cf-Access-Jwt-Assertion') || req.headers.get('cf-access-jwt-assertion');
+  if (cfAccess) {
+    // Parse payload only. CF Access already gated the route; use 'email' or 'sub' as identity.
+    try {
+      const parts = cfAccess.split('.');
+      if (parts.length === 3) {
+        const payloadB64 = parts[1];
+        const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payloadB64.length / 4) * 4, '=')), c => c.charCodeAt(0)));
+        const payload = JSON.parse(jsonStr);
+        const email = payload.email || payload.sub;
+        if (email) return String(email);
+      }
+    } catch {}
+    throw new Error('Unauthorized: invalid Cloudflare Access token');
+  }
+
+  // 2) Fallback to JWT Bearer
+  const auth = req.headers.get('authorization');
+  if (auth && auth.toLowerCase().startsWith('bearer ')) {
+    const token = auth.slice(7).trim();
+    return verifyJWT(token, env);
+  }
+
+  // Dev-only escape hatch: allow X-Owner-Id when ALLOW_HEADER_DEV="true"
+  if (env.ALLOW_HEADER_DEV === 'true') {
+    const header = req.headers.get('x-owner-id');
+    if (header && header.length > 0) return header;
+  }
+
+  throw new Error('Unauthorized: missing or invalid token');
+}
+
+async function handleListBottles(request: Request, env: Env, ownerId: string) {
   const url = new URL(request.url);
   const search = url.searchParams.get('search')?.trim();
   const base = url.searchParams.get('base_spirit')?.trim();
@@ -63,8 +154,7 @@ async function handleListBottles(request: Request, env: Env) {
   return json({ bottles: rs.results });
 }
 
-async function handleCreateBottle(request: Request, env: Env) {
-  const ownerId = await getOwnerId(request);
+async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
   const body = await request.json();
   const id = crypto.randomUUID();
 
@@ -105,8 +195,7 @@ async function handleCreateBottle(request: Request, env: Env) {
   return json({ bottle: row }, { status: 201 });
 }
 
-async function handleUpdateBottle(request: Request, env: Env, id: string) {
-  const ownerId = await getOwnerId(request);
+async function handleUpdateBottle(request: Request, env: Env, id: string, ownerId: string) {
   const body = await request.json();
 
   // Verify ownership
@@ -163,8 +252,7 @@ async function handleUpdateBottle(request: Request, env: Env, id: string) {
   return json({ bottle: row });
 }
 
-async function handleDeleteBottle(request: Request, env: Env, id: string) {
-  const ownerId = await getOwnerId(request);
+async function handleDeleteBottle(request: Request, env: Env, id: string, ownerId: string) {
   const existing = await env.DB.prepare(`SELECT owner_id FROM bottles WHERE id = ?`).bind(id).first();
   if (!existing) return json({ error: 'not found' }, { status: 404 });
   if (existing.owner_id !== ownerId) return json({ error: 'forbidden' }, { status: 403 });
@@ -182,16 +270,30 @@ export default {
       const url = new URL(request.url);
       const path = url.pathname.replace(/\/$/, '');
 
-      if (request.method === 'GET' && path.endsWith('/api/health')) {
-        return withCORS(json({ ok: true }));
+      // Block disallowed origins early
+      const origin = request.headers.get('Origin');
+      if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+        return new Response('CORS origin not allowed', { status: 403 });
       }
+
+      // Best-effort rate limit
+      if (!enforceRateLimit(request)) {
+        return withCORS(json({ error: 'rate limit exceeded' }, { status: 429 }), request);
+      }
+
+      if (request.method === 'GET' && path.endsWith('/api/health')) {
+        return withCORS(json({ ok: true }), request);
+      }
+
+      // Auth once per request
+      const ownerId = await getOwnerId(request, env);
 
       if (path.endsWith('/api/bottles')) {
         if (request.method === 'GET') {
-          return withCORS(await handleListBottles(request, env));
+          return withCORS(await handleListBottles(request, env, ownerId), request);
         }
         if (request.method === 'POST') {
-          return withCORS(await handleCreateBottle(request, env));
+          return withCORS(await handleCreateBottle(request, env, ownerId), request);
         }
       }
 
@@ -199,16 +301,16 @@ export default {
       if (match) {
         const id = match[1];
         if (request.method === 'PUT') {
-          return withCORS(await handleUpdateBottle(request, env, id));
+          return withCORS(await handleUpdateBottle(request, env, id, ownerId), request);
         }
         if (request.method === 'DELETE') {
-          return withCORS(await handleDeleteBottle(request, env, id));
+          return withCORS(await handleDeleteBottle(request, env, id, ownerId), request);
         }
       }
 
-      return withCORS(json({ error: 'not found' }, { status: 404 }));
+      return withCORS(json({ error: 'not found' }, { status: 404 }), request);
     } catch (err: any) {
-      return withCORS(json({ error: err.message || 'server error' }, { status: 500 }));
+      return withCORS(json({ error: err.message || 'server error' }, { status: 500 }), request);
     }
   }
 };
