@@ -4,6 +4,7 @@ export interface Env {
   JWT_SECRET?: string;        // set via `wrangler secret put JWT_SECRET`
   JWT_AUD?: string;           // optional audience check
   JWT_ISS?: string;           // optional issuer check
+  STAFF_API_TOKEN?: string;   // legacy staff token secret (used by staff-auth)
   ALLOW_HEADER_DEV?: string;  // if "true", allow X-Owner-Id for local dev only
 }
 
@@ -126,32 +127,48 @@ async function getOwnerId(req: Request, env: Env): Promise<string | null> {
 // Staff tokens grant READ access to inventory but are NOT owner identity.
 async function isValidStaffToken(req: Request, env: Env): Promise<boolean> {
   const auth = req.headers.get('authorization');
-  if (auth && auth.toLowerCase().startsWith('bearer ')) {
-    const token = auth.slice(7).trim();
-    if (!token) return false;
-    
-    // Support two token formats:
-    // 1. Legacy: simple "staff_" prefix (for backwards compatibility)
-    // 2. JWT: signed JWT token where sub='staff'
-    if (token.startsWith('staff_')) {
-      console.log('[STAFF_AUTH] Recognized staff_ prefix token');
-      return true;
+  if (!auth || !auth.toLowerCase().startsWith('bearer ')) return false;
+
+  const token = auth.slice(7).trim();
+  if (!token) return false;
+
+  // Format 1: legacy prefix
+  if (token.startsWith('staff_')) return true;
+
+  // Format 2: HS256 JWT (sub = staff)
+  if (token.includes('.')) {
+    // First try JWT verification if JWT_SECRET is configured
+    if (env.JWT_SECRET) {
+      try {
+        const sub = await verifyJWT(token, env);
+        if (sub === 'staff') return true;
+      } catch (_) {
+        // fall through to legacy staff-auth token check
+      }
     }
-    
-    // Try to verify as JWT
-    console.log('[STAFF_AUTH] Attempting JWT verification, token length:', token.length);
-    console.log('[STAFF_AUTH] JWT_SECRET present:', !!env.JWT_SECRET);
-    try {
-      const sub = await verifyJWT(token, env);
-      console.log('[STAFF_AUTH] JWT verified, sub:', sub);
-      return sub === 'staff';
-    } catch (e: any) {
-      // Not a valid JWT, not a staff_ token
-      console.log('[STAFF_AUTH] JWT verification failed:', e?.message || String(e));
-      return false;
+
+    // Format 3: Legacy staff-auth token from staff-auth worker
+    // Structure: base64(payload) + '.' + STAFF_API_TOKEN prefix (20 chars)
+    if (env.STAFF_API_TOKEN) {
+      const parts = token.split('.');
+      if (parts.length === 2) {
+        const [payloadB64, sigPrefix] = parts;
+        const expectedPrefix = env.STAFF_API_TOKEN.substring(0, 20);
+        if (sigPrefix === expectedPrefix) {
+          try {
+            const payload = JSON.parse(atob(payloadB64));
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.sub === 'staff' && (!payload.exp || now <= payload.exp)) {
+              return true;
+            }
+          } catch (_) {
+            // malformed payload
+          }
+        }
+      }
     }
   }
-  console.log('[STAFF_AUTH] No Bearer token found in Authorization header');
+
   return false;
 }
 
