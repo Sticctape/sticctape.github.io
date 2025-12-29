@@ -284,25 +284,25 @@
   
     // Placeholder images based on spirit type
     const spiritPlaceholders = {
-    bourbon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23654321" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23654321" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23654321" font-size="12" opacity="0.5"%3EBourbon%3C/text%3E%3C/svg%3E',
-    whiskey: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23b8860b" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23b8860b" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23b8860b" font-size="12" opacity="0.5"%3EWhiskey%3C/text%3E%3C/svg%3E',
-    rye: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23cd853f" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23cd853f" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23cd853f" font-size="12" opacity="0.5"%3ERye%3C/text%3E%3C/svg%3E',
-    scotch: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23d2691e" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23d2691e" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23d2691e" font-size="12" opacity="0.5"%3EScotch%3C/text%3E%3C/svg%3E',
-    rum: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%238b4513" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%238b4513" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b4513" font-size="12" opacity="0.5"%3ERum%3C/text%3E%3C/svg%3E',
-    gin: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%2387ceeb" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%2387ceeb" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%2387ceeb" font-size="12" opacity="0.5"%3EGin%3C/text%3E%3C/svg%3E',
-    vodka: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23e0e0e0" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23e0e0e0" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23e0e0e0" font-size="12" opacity="0.5"%3EVodka%3C/text%3E%3C/svg%3E',
-    tequila: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23f4a460" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23f4a460" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23f4a460" font-size="12" opacity="0.5"%3ETequila%3C/text%3E%3C/svg%3E',
-    mezcal: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23daa520" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23daa520" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23daa520" font-size="12" opacity="0.5"%3EMezcal%3C/text%3E%3C/svg%3E',
-    brandy: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23a0522d" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23a0522d" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23a0522d" font-size="12" opacity="0.5"%3EBrandy%3C/text%3E%3C/svg%3E',
-    cognac: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%238b4513" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%238b4513" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b4513" font-size="12" opacity="0.5"%3ECognac%3C/text%3E%3C/svg%3E',
-    liqueur: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ff69b4" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ff69b4" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ff69b4" font-size="12" opacity="0.5"%3ELiqueur%3C/text%3E%3C/svg%3E',
-    amaro: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23800020" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23800020" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23800020" font-size="12" opacity="0.5"%3EAmaro%3C/text%3E%3C/svg%3E',
-    vermouth: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23dc143c" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23dc143c" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23dc143c" font-size="10" opacity="0.5"%3EVermouth%3C/text%3E%3C/svg%3E',
-    bitters: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="30" y="20" width="20" height="120" rx="2" fill="%238b0000" opacity="0.3"/%3E%3Crect x="28" y="15" width="24" height="8" rx="1" fill="%238b0000" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%238b0000" font-size="10" opacity="0.5"%3EBitters%3C/text%3E%3C/svg%3E',
-    syrup: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ffb347" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ffb347" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ffb347" font-size="12" opacity="0.5"%3ESyrup%3C/text%3E%3C/svg%3E',
-    foam: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23f0f0f0" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23f0f0f0" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23f0f0f0" font-size="12" opacity="0.5"%3EFoam%3C/text%3E%3C/svg%3E',
-    cordial: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23ff6347" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23ff6347" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23ff6347" font-size="11" opacity="0.5"%3ECordial%3C/text%3E%3C/svg%3E',
-    other: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="160" viewBox="0 0 80 160"%3E%3Crect x="25" y="10" width="30" height="140" rx="3" fill="%23808080" opacity="0.3"/%3E%3Crect x="20" y="5" width="40" height="10" rx="2" fill="%23808080" opacity="0.3"/%3E%3Ctext x="40" y="85" text-anchor="middle" fill="%23808080" font-size="12" opacity="0.5"%3EBottle%3C/text%3E%3C/svg%3E'
+      bourbon: 'assets/bottles/whiskey.png',
+      whiskey: 'assets/bottles/whiskey.png',
+      rye: 'assets/bottles/whiskey.png',
+      scotch: 'assets/bottles/whiskey.png',
+      rum: 'assets/bottles/whiskey.png',
+      gin: 'assets/bottles/whiskey.png',
+      vodka: 'assets/bottles/whiskey.png',
+      tequila: 'assets/bottles/whiskey.png',
+      mezcal: 'assets/bottles/whiskey.png',
+      brandy: 'assets/bottles/whiskey.png',
+      cognac: 'assets/bottles/whiskey.png',
+      liqueur: 'assets/bottles/whiskey.png',
+      amaro: 'assets/bottles/whiskey.png',
+      vermouth: 'assets/bottles/whiskey.png',
+      bitters: 'assets/bottles/whiskey.png',
+      syrup: 'assets/bottles/whiskey.png',
+      foam: 'assets/bottles/whiskey.png',
+      cordial: 'assets/bottles/whiskey.png',
+      other: 'assets/bottles/whiskey.png'
     };
 
     // Load bottles from API
