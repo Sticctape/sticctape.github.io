@@ -1,6 +1,7 @@
 /* Service Worker for The Streeters */
 
 const CACHE_VERSION = 'v1';
+const ROUTES = ['about', 'contact', 'cocktails', 'inventory', 'staff-orders'];
 
 // Install event: cache assets
 self.addEventListener('install', event => {
@@ -10,6 +11,30 @@ self.addEventListener('install', event => {
 // Activate event: clean up old caches
 self.addEventListener('activate', event => {
   self.clients.claim(); // Take control of clients immediately
+});
+
+// Handle navigation requests: rewrite extensionless paths to .html for prod
+self.addEventListener('fetch', event => {
+  const { request } = event;
+
+  // Only handle top-level navigations
+  if (request.mode === 'navigate') {
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/^\/+|\/+$/g, '');
+
+    // Root -> serve index.html as-is
+    if (!path || path === 'index.html' || path === 'index') return;
+
+    // If already ends with .html, just let it continue
+    if (path.endsWith('.html')) return;
+
+    // If the path matches one of our SPA routes, rewrite to the .html file
+    if (ROUTES.includes(path)) {
+      const rewritten = new URL(url.href);
+      rewritten.pathname = `/${path}.html`;
+      event.respondWith(fetch(rewritten.href));
+    }
+  }
 });
 
 // Handle notification clicks
