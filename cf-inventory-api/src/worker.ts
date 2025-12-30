@@ -222,13 +222,14 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
   const id = crypto.randomUUID();
 
   const {
-    brand, product_name, base_spirit, style, abv, volume_ml, quantity = 1,
+    brand, product_name, base_spirit, style, category, abv, volume_ml, quantity = 1,
     status = 'sealed', purchase_date, price_cents, currency = 'USD', location, notes, image_url, upc, tags
   } = body || {};
 
   // Normalize undefined -> null for optional fields (D1 rejects undefined)
   const base = base_spirit ?? null;
   const styleVal = style ?? null;
+  const categoryVal = category ?? null;
   const abvVal = abv ?? null;
   const volVal = volume_ml ?? null;
   const statusVal = status ?? null;
@@ -248,10 +249,10 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
     // Normalize owner_id to a stable value for future reads
     const normalizedOwnerId = ownerId.startsWith('owner:') ? 'owner:primary' : ownerId;
     const stmt = env.DB.prepare(`INSERT INTO bottles (
-      id, owner_id, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
+      id, owner_id, brand, product_name, base_spirit, style, category, abv, volume_ml, quantity, status,
       purchase_date, price_cents, currency, location, notes, image_url, upc
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(id, normalizedOwnerId, brand, product_name, base, styleVal, abvVal, volVal, quantity, statusVal,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .bind(id, normalizedOwnerId, brand, product_name, base, styleVal, categoryVal, abvVal, volVal, quantity, statusVal,
           purchaseVal, priceVal, currencyVal, locationVal, notesVal, imageVal, upcVal);
 
     await stmt.run();
@@ -293,7 +294,7 @@ async function handleUpdateBottle(request: Request, env: Env, id: string, ownerI
   }
 
   const fields = [
-    'brand','product_name','base_spirit','style','abv','volume_ml','quantity','status',
+    'brand','product_name','base_spirit','style','category','abv','volume_ml','quantity','status',
     'purchase_date','price_cents','currency','location','notes','image_url','upc'
   ] as const;
 

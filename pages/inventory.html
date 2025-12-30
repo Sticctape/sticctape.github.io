@@ -120,6 +120,13 @@
             </select>
           </div>
           <div class="form-group">
+            <label for="bottleCategory">Category (Subcategory)</label>
+            <select id="bottleCategory">
+              <option value="">None</option>
+            </select>
+            <small style="display: block; margin-top: 0.25rem; color: #999;">e.g. Reposado, Anejo for Tequila</small>
+          </div>
+          <div class="form-group">
             <label for="bottleStyle">Style/Type</label>
             <input type="text" id="bottleStyle" placeholder="e.g. Single Malt, Spiced, London Dry" />
           </div>
@@ -477,28 +484,79 @@
       }
     });
   
-    // Placeholder images based on spirit type
+    // Placeholder images based on spirit type or category
     const spiritPlaceholders = {
-      bourbon: 'assets/bottles/whiskey.png',
+      bourbon: 'assets/bottles/bourbon.png',
       whiskey: 'assets/bottles/whiskey.png',
-      rye: 'assets/bottles/whiskey.png',
+      rye: 'assets/bottles/rye.png',
       scotch: 'assets/bottles/scotch.png',
       rum: 'assets/bottles/rum.png',
       gin: 'assets/bottles/gin.png',
       vodka: 'assets/bottles/vodka.png',
-      tequila: 'assets/bottles/whiskey.png',
-      mezcal: 'assets/bottles/whiskey.png',
-      brandy: 'assets/bottles/whiskey.png',
-      cognac: 'assets/bottles/whiskey.png',
-      liqueur: 'assets/bottles/whiskey.png',
-      coffeeliqueur: 'assets/bottles/whiskey.png',
-      amaro: 'assets/bottles/whiskey.png',
-      vermouth: 'assets/bottles/whiskey.png',
-      bitters: 'assets/bottles/whiskey.png',
-      syrup: 'assets/bottles/whiskey.png',
-      foam: 'assets/bottles/whiskey.png',
-      cordial: 'assets/bottles/whiskey.png',
-      other: 'assets/bottles/whiskey.png'
+      tequila: 'assets/bottles/tequila.png',
+      blanco: 'assets/bottles/tequila.png',
+      reposado: 'assets/bottles/reposado.png',
+      anejo: 'assets/bottles/reposado.png',
+      mezcal: 'assets/bottles/mezcal.png',
+      brandy: 'assets/bottles/brandy.png',
+      cognac: 'assets/bottles/cognac.png',
+      liqueur: 'assets/bottles/liqueur.png',
+      coffeeliqueur: 'assets/bottles/coffeeliqueur.png',
+      amaro: 'assets/bottles/amaro.png',
+      vermouth: 'assets/bottles/vermouth.png',
+      bitters: 'assets/bottles/bitters.png',
+      syrup: 'assets/bottles/syrup.png',
+      foam: 'assets/bottles/foam.png',
+      cordial: 'assets/bottles/cordial.png',
+      other: 'assets/bottles/other.png'
+    };
+
+    // Category options for each base spirit
+    const spiritCategories = {
+      tequila: [
+        { value: 'blanco', label: 'Blanco (Silver)' },
+        { value: 'reposado', label: 'Reposado' },
+        { value: 'anejo', label: 'Anejo' }
+      ],
+      mezcal: [
+        { value: 'blanco', label: 'Blanco' },
+        { value: 'reposado', label: 'Reposado' },
+        { value: 'anejo', label: 'Anejo' }
+      ],
+      scotch: [
+        { value: 'single-malt', label: 'Single Malt' },
+        { value: 'blended-malt', label: 'Blended Malt' },
+        { value: 'blended', label: 'Blended' },
+        { value: 'single-grain', label: 'Single Grain' }
+      ],
+      rum: [
+        { value: 'light', label: 'Light/White' },
+        { value: 'gold', label: 'Gold/Amber' },
+        { value: 'dark', label: 'Dark' },
+        { value: 'spiced', label: 'Spiced' }
+      ],
+      brandy: [
+        { value: 'vs', label: 'VS (Very Special)' },
+        { value: 'vsop', label: 'VSOP (Very Superior Old Pale)' },
+        { value: 'xo', label: 'XO (Extra Old)' }
+      ],
+      whiskey: [
+        { value: 'blended', label: 'Blended' },
+        { value: 'single-malt', label: 'Single Malt' },
+        { value: 'bourbon', label: 'Bourbon' },
+        { value: 'rye', label: 'Rye' }
+      ],
+      gin: [
+        { value: 'london-dry', label: 'London Dry' },
+        { value: 'navy', label: 'Navy Strength' },
+        { value: 'old-tom', label: 'Old Tom' }
+      ],
+      liqueur: [
+        { value: 'amaro', label: 'Amaro' },
+        { value: 'herbal', label: 'Herbal' },
+        { value: 'fruit', label: 'Fruit' },
+        { value: 'cream', label: 'Cream' }
+      ]
     };
 
     // Load bottles from API
@@ -606,7 +664,9 @@
     
     emptyState.classList.add('is-hidden');
     bottleGrid.innerHTML = filtered.map(bottle => {
-      const placeholder = spiritPlaceholders[bottle.base_spirit?.toLowerCase()] || spiritPlaceholders.other;
+      // Use category icon if available, otherwise use base spirit icon
+      const iconKey = bottle.category?.toLowerCase() || bottle.base_spirit?.toLowerCase();
+      const placeholder = spiritPlaceholders[iconKey] || spiritPlaceholders.other;
       
       // Always use generic placeholder for card display, store uploaded image for popout
       const cardImageSrc = placeholder;
@@ -623,6 +683,7 @@
             <div class="bottle-meta">
               <p class="bottle-details">
                 <span class="bottle-spirit">${bottle.base_spirit || ''}</span>
+                ${bottle.category ? `<span class="bottle-category" style="margin-left: 0.5rem; opacity: 0.8;">(${bottle.category})</span>` : ''}
                 ${bottle.volume_ml ? `<span class="bottle-volume">${bottle.volume_ml}ml</span>` : ''}
               </p>
               ${bottle.location ? `<p class="bottle-location">📍 ${bottle.location}</p>` : ''}
@@ -640,6 +701,28 @@
     }).join('');
     }
 
+    // Update category dropdown based on selected base spirit
+    function updateCategoryDropdown() {
+      const baseSpiritSelect = document.getElementById('bottleBaseSpirit');
+      const categorySelect = document.getElementById('bottleCategory');
+      const selectedSpirit = baseSpiritSelect.value;
+      
+      // Clear existing options (except "None")
+      while (categorySelect.options.length > 1) {
+        categorySelect.remove(1);
+      }
+      
+      // Add options for the selected spirit
+      if (selectedSpirit && spiritCategories[selectedSpirit]) {
+        spiritCategories[selectedSpirit].forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.value;
+          option.textContent = cat.label;
+          categorySelect.appendChild(option);
+        });
+      }
+    }
+
     // Open add modal
     function openAddModal() {
       console.log('🔵 openAddModal called');
@@ -647,6 +730,10 @@
       bottleModalTitle.textContent = 'Add Bottle';
       bottleForm.reset();
       document.getElementById('bottleId').value = '';
+      document.getElementById('bottleCategory').value = '';
+      
+      // Update category dropdown for blank spirit selection
+      updateCategoryDropdown();
       
       // Reset image state for new bottle
       selectedImageFile = null;
@@ -685,6 +772,10 @@
     document.getElementById('bottleUpc').value = bottle.upc || '';
       document.getElementById('bottleTags').value = Array.isArray(bottle.tags) ? bottle.tags.join(', ') : '';
       document.getElementById('bottleNotes').value = bottle.notes || '';
+      
+      // Update category dropdown and set the value
+      updateCategoryDropdown();
+      document.getElementById('bottleCategory').value = bottle.category || '';
       
       // Show image upload area when editing
       imageUploadGroup.style.display = 'block';
@@ -1086,6 +1177,7 @@
         brand: document.getElementById('bottleBrand').value.trim(),
         product_name: document.getElementById('bottleProduct').value.trim(),
         base_spirit: document.getElementById('bottleBaseSpirit').value,
+        category: document.getElementById('bottleCategory').value || null,
         style: document.getElementById('bottleStyle').value.trim() || null,
         abv: parseFloat(document.getElementById('bottleABV').value) || null,
         volume_ml: parseInt(document.getElementById('bottleVolume').value) || null,
@@ -1313,6 +1405,7 @@
     // Verify event listener was added
     console.log('🔵 Event listener added to button');
     document.getElementById('bottleModalCancel').addEventListener('click', closeBottleModal);
+    document.getElementById('bottleBaseSpirit').addEventListener('change', updateCategoryDropdown);
     bottleForm.addEventListener('submit', submitBottle);
     
     document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
