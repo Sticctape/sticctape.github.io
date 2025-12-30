@@ -221,7 +221,6 @@ nav.site-nav a.active{
     transform:translateY(-50%);
     z-index:5;
   }
-}
 
   nav.site-nav a{
     font-size:.92rem;
@@ -470,7 +469,7 @@ h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
 /* Image selector modal - for choosing from multiple UPC images */
 #imageSelectOverlay{z-index:121}
 .image-select-modal{max-width:600px}
-.image-select-modal img{filter:none !important;grayscale:0 !important}
+.image-select-modal img{filter:none !important}
 .image-preview-modal .preview-details h3{margin:0 0 .75rem}
 .image-preview-modal .preview-fields{list-style:none;margin:0 0 .75rem;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem}
 .image-preview-modal .preview-fields li{opacity:.9}
