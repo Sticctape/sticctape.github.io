@@ -1517,7 +1517,20 @@
     loadBottles();
   }
   
-  // Run init immediately (SPA already has DOM ready)
-  init();
+  // Export init for SPA reinitialization
+  window.initInventory = init;
+  
+  // Run init immediately only on direct page load (not SPA)
+  if (document.readyState === 'loading') {
+    // Page is loading, init will run via DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    // Page already loaded, check if we're in SPA context
+    // If #content has our elements, we're in SPA and will be called explicitly
+    // Otherwise we're a direct page load
+    if (!document.getElementById('bottleGrid')) {
+      init();
+    }
+  }
 })();
 </script>

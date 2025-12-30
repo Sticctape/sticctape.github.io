@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const resp = await fetch(`pages/${id}.html`);
       if (!resp.ok) throw new Error(`404 for ${id}.html`);
       content.innerHTML = await resp.text();
+      
+      // Wait for DOM to settle before executing scripts
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       if (id === 'cocktails') initCocktailModals();
       
       // Re-execute scripts in loaded content
@@ -35,6 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
         newScript.textContent = script.textContent;
         script.parentNode.replaceChild(newScript, script);
       });
+      
+      // For inventory page, re-initialize after DOM is settled
+      if (id === 'inventory') {
+        if (typeof window.initInventory === 'function') {
+          setTimeout(() => {
+            window.initInventory();
+          }, 100);
+        }
+      }
       
       // For staff-orders page, ensure the initial load happens
       if (id === 'staff-orders') {
@@ -66,25 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function activateSection(id) {
-    // Check if page requires authentication
-    const requiresAuth = ['inventory'].includes(id);
-    const requiresStaff = ['staff-orders'].includes(id);
-    
-    const isOwner = localStorage.getItem('isOwner') === 'true';
-    const isStaff = localStorage.getItem('isStaff') === 'true';
-    
-    if (requiresAuth && !isOwner && !isStaff) {
-      // Redirect to home
-      window.location.hash = '#about';
-      return;
-    }
-    
-    if (requiresStaff && !(isStaff || isOwner)) {
-      // Redirect to home
-      window.location.hash = '#about';
-      return;
-    }
-    
     navLinks.forEach(l => l.classList.toggle('active', l.dataset.section === id));
     const show = id === 'cocktails';
     logo.classList.toggle('show', show);
