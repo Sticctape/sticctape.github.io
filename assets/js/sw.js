@@ -28,7 +28,7 @@ self.addEventListener('fetch', event => {
     // If already ends with .html, just let it continue
     if (path.endsWith('.html')) return;
 
-    // If the path matches one of our SPA routes, rewrite to the .html file
+    // If the path matches one of our site routes, rewrite to the .html file
     if (ROUTES.includes(path)) {
       const rewritten = new URL(url.href);
       rewritten.pathname = `/${path}.html`;

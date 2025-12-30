@@ -69,8 +69,430 @@
   <img id="distLogo"   class="dist-logo"  src="/assets/StreeterDistilleryLogoW.png" alt="Streeter Distillery Logo">
   <div id="logoDivider" class="logo-divider"></div>
 
-  <!-- MAIN: partial pages load here -->
-  <main id="content"></main>
+  <!-- MAIN -->
+  <main id="content">
+    <div class="staff-orders-container">
+      <h2 class="staff-orders-title">Order Management</h2>
+      
+      <div class="auto-refresh-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoRefreshToggle">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Auto-refresh every 10 seconds</span>
+      </div>
+      
+      <div id="staffError" class="staff-error is-hidden"></div>
+      
+      <!-- Status filter -->
+      <div class="status-filter-container">
+        <span class="status-filter-label">Filter by Status:</span>
+        <button class="filter-btn active" data-filter="Received">Received</button>
+        <button class="filter-btn active" data-filter="Making">Making</button>
+        <button class="filter-btn active" data-filter="Ready">Ready</button>
+        <button class="filter-btn active" data-filter="Picked Up">Picked Up</button>
+        <button class="filter-reset-btn" id="filterResetBtn">Reset Filters</button>
+        <button class="filter-reset-btn" id="deletePickedUpBtn" style="background: rgba(255, 85, 85, 0.15); border-color: rgba(255, 85, 85, 0.3); color: #ff5555;">Delete All Picked Up</button>
+      </div>
+      
+      <table class="staff-orders-table" id="staffOrdersTable">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Drink</th>
+            <th>Qty</th>
+            <th>Notes</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="staffOrdersBody">
+          <tr><td colspan="8" class="staff-loading">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+    // Staff orders dashboard logic
+    var staffAutoRefresh = false;
+    var staffRefreshInterval = null;
+    var allOrders = []; // Store all orders for filtering
+    var selectedStatusFilters = ['Received', 'Making', 'Ready', 'Picked Up']; // Track selected filters (shows all statuses by default)
+
+    // Abort any previous requests and cleanup
+    if (window.staffOrdersController && !window.staffOrdersController.signal.aborted) {
+      window.staffOrdersController.abort();
+    }
+
+    // Create a fresh controller for this page load
+    window.staffOrdersController = new AbortController();
+    var staffOrdersController = window.staffOrdersController;
+
+    async function loadStaffOrders() {
+      // Reset controller if it was aborted
+      if (staffOrdersController.signal.aborted) {
+        staffOrdersController = window.staffOrdersController = new AbortController();
+      }
+      
+      const tbody = document.getElementById('staffOrdersBody');
+      const errorDiv = document.getElementById('staffError');
+      const ownerToken = localStorage.getItem('ownerToken');
+      const staffToken = localStorage.getItem('staffToken');
+      const token = ownerToken || staffToken;
+      
+      try {
+        if (!tbody || !errorDiv) {
+          // Page elements not found (page was navigated away)
+          return;
+        }
+        
+        if (!token) {
+          throw new Error("Not logged in - please log in on the main page first");
+        }
+        
+        errorDiv.classList.add('is-hidden');
+        
+        const resp = await fetch('https://streeter.cc/api/all-orders', {
+          headers: {
+            'X-Staff-Token': token
+          },
+          signal: staffOrdersController.signal
+        });
+        
+        if (!resp.ok) {
+          if (resp.status === 401) throw new Error("Unauthorized - invalid token. Please log in again on the main page.");
+          throw new Error(`Server error: ${resp.statusText}`);
+        }
+        
+        const data = await resp.json();
+        allOrders = data.orders || [];
+        
+        // Check if elements still exist
+        if (!tbody || !document.body.contains(tbody)) return;
+        
+        // Render with current filter
+        renderFilteredOrders();
+        
+      } catch (err) {
+        // Check if elements still exist (page might have been navigated away)
+        if (!errorDiv || !document.body.contains(errorDiv)) return;
+        
+        // Ignore abort errors (expected when navigating away)
+        if (err.name === 'AbortError') return;
+        
+        errorDiv.textContent = `Error loading orders: ${err.message}`;
+        errorDiv.classList.remove('is-hidden');
+        
+        const tbody = document.getElementById('staffOrdersBody');
+        if (tbody && document.body.contains(tbody)) {
+          tbody.innerHTML = '<tr><td colspan="8" class="staff-error">Failed to load orders</td></tr>';
+        }
+      }
+    }
+
+    function renderFilteredOrders() {
+      const tbody = document.getElementById('staffOrdersBody');
+      if (!tbody) return;
+      
+      // Filter orders based on selected statuses
+      const filteredOrders = selectedStatusFilters.length === 0
+        ? []
+        : allOrders.filter(order => selectedStatusFilters.includes(order.status));
+      
+      if (filteredOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="staff-empty">No orders found</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filteredOrders.map(order => {
+        const statusClass = `status-${order.status.toLowerCase().replace(/\s+/g, '-')}`;
+        const createdAt = new Date(order.createdAt);
+        const timeStr = createdAt.toLocaleString('en-US', { 
+          month: '2-digit', 
+          day: '2-digit', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZone: 'America/New_York'
+        });
+        
+        return `
+          <tr>
+            <td><strong>${order.orderId}</strong></td>
+            <td>${order.name}</td>
+            <td>${order.drink}</td>
+            <td>${order.qty}</td>
+            <td>${order.notes || '—'}</td>
+            <td><span class="order-status-badge ${statusClass}">${order.status}</span></td>
+            <td style="font-size: 0.85rem;">${timeStr}</td>
+            <td>
+              <div class="status-buttons">
+                ${order.status !== 'Making' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Making">Making</button>` : ''}
+                ${order.status !== 'Ready' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Ready">Ready</button>` : ''}
+                ${order.status !== 'Picked Up' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Picked Up">Picked Up</button>` : ''}
+                ${order.status === 'Picked Up' ? `<button class="delete-btn" data-order-id="${order.orderId}">Delete</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Add event listeners to all status buttons
+      tbody.querySelectorAll('.status-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const orderId = btn.dataset.orderId;
+          const newStatus = btn.dataset.status;
+          await updateOrderStatus(orderId, newStatus);
+        });
+      });
+
+      // Add event listeners to all delete buttons
+      tbody.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const orderId = btn.dataset.orderId;
+          await deleteStaffOrder(orderId);
+        });
+      });
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      // Reset controller if it was aborted
+      if (staffOrdersController.signal.aborted) {
+        staffOrdersController = window.staffOrdersController = new AbortController();
+      }
+      
+      const ownerToken = localStorage.getItem('ownerToken');
+      const staffToken = localStorage.getItem('staffToken');
+      const token = ownerToken || staffToken;
+      try {
+        const resp = await fetch(`https://streeter.cc/api/status/${orderId}/${newStatus}`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Staff-Token': token
+          },
+          signal: staffOrdersController.signal
+        });
+        
+        if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
+        
+        // Reload table after successful update
+        await loadStaffOrders();
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        
+        const errorDiv = document.getElementById('staffError');
+        if (errorDiv && document.body.contains(errorDiv)) {
+          errorDiv.textContent = `Error updating order: ${err.message}`;
+          errorDiv.classList.remove('is-hidden');
+        }
+      }
+    }
+
+    async function deleteStaffOrder(orderId) {
+      // Reset controller if it was aborted
+      if (staffOrdersController.signal.aborted) {
+        staffOrdersController = window.staffOrdersController = new AbortController();
+      }
+      
+      const ownerToken = localStorage.getItem('ownerToken');
+      const staffToken = localStorage.getItem('staffToken');
+      const token = ownerToken || staffToken;
+      try {
+        const resp = await fetch(`https://streeter.cc/api/orders/${orderId}`, {
+          method: 'DELETE',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Staff-Token': token
+          },
+          signal: staffOrdersController.signal
+        });
+        
+        if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
+        
+        // Reload table after successful deletion
+        await loadStaffOrders();
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        
+        const errorDiv = document.getElementById('staffError');
+        if (errorDiv && document.body.contains(errorDiv)) {
+          errorDiv.textContent = `Error deleting order: ${err.message}`;
+          errorDiv.classList.remove('is-hidden');
+        }
+      }
+    }
+
+    async function deleteAllPickedUp() {
+      // Reset controller if it was aborted
+      if (staffOrdersController.signal.aborted) {
+        staffOrdersController = window.staffOrdersController = new AbortController();
+      }
+      
+        const ownerToken = localStorage.getItem('ownerToken');
+        const staffToken = localStorage.getItem('staffToken');
+        const token = ownerToken || staffToken;
+      const pickedUpOrders = allOrders.filter(order => order.status === 'Picked Up');
+      
+      if (pickedUpOrders.length === 0) {
+        const errorDiv = document.getElementById('staffError');
+        if (errorDiv && document.body.contains(errorDiv)) {
+          errorDiv.textContent = 'No picked up orders to delete';
+          errorDiv.classList.remove('is-hidden');
+        }
+        return;
+      }
+      
+      try {
+        // Delete each picked up order
+        for (const order of pickedUpOrders) {
+          const resp = await fetch(`https://streeter.cc/api/orders/${order.orderId}`, {
+            method: 'DELETE',
+            headers: { 
+              'Content-Type': 'application/json',
+                'X-Staff-Token': token
+            },
+            signal: staffOrdersController.signal
+          });
+          
+          if (!resp.ok) {
+            throw new Error(`Failed to delete order ${order.orderId}`);
+          }
+        }
+        
+        // Reload table after successful deletion
+        await loadStaffOrders();
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        
+        const errorDiv = document.getElementById('staffError');
+        if (errorDiv && document.body.contains(errorDiv)) {
+          errorDiv.textContent = `Error deleting picked up orders: ${err.message}`;
+          errorDiv.classList.remove('is-hidden');
+        }
+      }
+    }
+
+    function startStaffAutoRefresh() {
+      if (staffRefreshInterval) clearInterval(staffRefreshInterval);
+      staffRefreshInterval = setInterval(loadStaffOrders, 10000); // Refresh every 10 seconds
+      loadStaffOrders(); // Initial load
+    }
+
+    function stopStaffAutoRefresh() {
+      if (staffRefreshInterval) {
+        clearInterval(staffRefreshInterval);
+        staffRefreshInterval = null;
+      }
+    }
+
+    function setupFilterButtons() {
+      // Convert NodeList to Array to avoid iteration issues when replacing
+      const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
+      
+      filterBtns.forEach(btn => {
+        // Clone to remove old listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        // Sync button state with current filters
+        const status = newBtn.dataset.filter;
+        if (selectedStatusFilters.includes(status)) {
+          newBtn.classList.add('active');
+        } else {
+          newBtn.classList.remove('active');
+        }
+        
+        newBtn.addEventListener('click', () => {
+          // Toggle selection
+          if (selectedStatusFilters.includes(status)) {
+            selectedStatusFilters = selectedStatusFilters.filter(s => s !== status);
+            newBtn.classList.remove('active');
+          } else {
+            selectedStatusFilters.push(status);
+            newBtn.classList.add('active');
+          }
+          
+          // Re-render with new filters
+          renderFilteredOrders();
+        });
+      });
+    }
+
+    // Setup reset button
+    function setupResetButton() {
+      const resetBtn = document.getElementById('filterResetBtn');
+      if (resetBtn) {
+        // Clone to remove old listeners
+        const newResetBtn = resetBtn.cloneNode(true);
+        resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+        
+        newResetBtn.addEventListener('click', () => {
+          // Reset to default: show all statuses
+          selectedStatusFilters = ['Received', 'Making', 'Ready', 'Picked Up'];
+          
+          // Update button states
+          const filterBtns = document.querySelectorAll('.filter-btn');
+          filterBtns.forEach(btn => {
+            if (selectedStatusFilters.includes(btn.dataset.filter)) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
+          });
+          
+          // Re-render
+          renderFilteredOrders();
+        });
+      }
+    }
+
+    function setupDeletePickedUpButton() {
+      const deleteBtn = document.getElementById('deletePickedUpBtn');
+      if (deleteBtn) {
+        // Clone to remove old listeners
+        const newDeleteBtn = deleteBtn.cloneNode(true);
+        deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+        
+        newDeleteBtn.addEventListener('click', async () => {
+          await deleteAllPickedUp();
+        });
+      }
+    }
+
+    // Setup filter buttons with a small delay to ensure DOM is ready
+    setTimeout(() => {
+      setupFilterButtons();
+      setupResetButton();
+      setupDeletePickedUpButton();
+    }, 0);
+
+    // Initial load - fetch orders and render
+    loadStaffOrders();
+
+    // Toggle auto-refresh
+    var autoRefreshToggle = document.getElementById('autoRefreshToggle');
+    if (autoRefreshToggle) {
+      // Reset toggle state
+      autoRefreshToggle.checked = false;
+      
+      autoRefreshToggle.addEventListener('change', (e) => {
+        staffAutoRefresh = e.target.checked;
+        if (staffAutoRefresh) {
+          startStaffAutoRefresh();
+        } else {
+          stopStaffAutoRefresh();
+        }
+      });
+    }
+
+    // No navigation cleanup needed in multi-page mode
+    </script>
+  </main>
 
   <!-- Cocktail MODAL -->
   <div class="modal-overlay" id="modalOverlay">

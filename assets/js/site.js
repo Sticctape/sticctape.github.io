@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------
-   site.js – unified History API SPA logic (path-based routing)
-   ------------------------------------------------------------------ */
+  site.js – site-wide behaviors (multi-page)
+  ------------------------------------------------------------------ */
 
 // Global cooldown tracking for order submissions
 let lastOrderTime = 0;
@@ -10,15 +10,12 @@ let statusPollingInterval = null;
 // Track order statuses for notification purposes
 let previousOrderStatuses = {};
 
-// Valid routes for path-based routing
+// Valid routes for active-nav highlighting
 const VALID_ROUTES = ['about', 'contact', 'cocktails', 'inventory', 'staff-orders'];
 const DEFAULT_ROUTE = 'about';
 
-// Will be set during DOMContentLoaded
-let activateSection = null;
-
-// Helper: get section ID from pathname
-function getSectionFromPath() {
+// Helper: get current section ID from pathname (for active nav)
+function getCurrentSectionFromPath() {
   let path = window.location.pathname;
   // Remove leading slash and trailing slash
   path = path.replace(/^\/+|\/?$/g, '');
@@ -35,114 +32,30 @@ function getSectionFromPath() {
   return DEFAULT_ROUTE;
 }
 
-// Helper: navigate to a section using History API
-function navigateTo(section, pushState = true) {
-  if (pushState) {
-    const url = section === DEFAULT_ROUTE ? '/' : `/${section}.html`;
-    window.history.pushState({ section }, '', url);
-  }
-  if (activateSection) {
-    activateSection(section);
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  const navBar   = document.querySelector('nav.site-nav');
-  const navLinks = navBar.querySelectorAll('a[data-section]');
-  const content  = document.getElementById('content');
-  const logo     = document.getElementById('distLogo');
-  const divider  = document.getElementById('logoDivider');
+  const navBar = document.querySelector('nav.site-nav');
+  const navLinks = navBar ? navBar.querySelectorAll('a[data-section]') : [];
+  const logo = document.getElementById('distLogo');
+  const divider = document.getElementById('logoDivider');
 
-  async function loadPage(id) {
-    try {
-      // Cleanup previous page if it had cleanup function
-      if (window.cleanupStaffOrders && typeof window.cleanupStaffOrders === 'function') {
-        window.cleanupStaffOrders();
-      }
-      
-      const resp = await fetch(`/pages/${id}.html`);
-      if (!resp.ok) throw new Error(`404 for ${id}.html`);
-      content.innerHTML = await resp.text();
-      
-      // Wait for DOM to settle before executing scripts
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      if (id === 'cocktails') initCocktailModals();
-      
-      // Re-execute scripts in loaded content
-      const scripts = content.querySelectorAll('script');
-      for (const script of scripts) {
-        const newScript = document.createElement('script');
-        newScript.textContent = script.textContent;
-        // Remove original script and append new one to head for guaranteed execution
-        script.remove();
-        document.head.appendChild(newScript);
-        // Small delay to ensure script executes before continuing
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
-      
-      // For staff-orders page, ensure the initial load happens
-      if (id === 'staff-orders') {
-        // Re-setup filters and load orders
-        if (typeof window.setupFilterButtons === 'function') {
-          setTimeout(() => {
-            window.setupFilterButtons();
-          }, 0);
-        }
-        if (typeof window.setupResetButton === 'function') {
-          setTimeout(() => {
-            window.setupResetButton();
-          }, 0);
-        }
-        if (typeof window.setupDeletePickedUpButton === 'function') {
-          setTimeout(() => {
-            window.setupDeletePickedUpButton();
-          }, 0);
-        }
-        if (typeof window.loadStaffOrders === 'function') {
-          setTimeout(() => {
-            window.loadStaffOrders();
-          }, 0);
-        }
-      }
-    } catch (err) {
-      content.innerHTML = `<p style="color:#f55">Failed to load page: ${err}</p>`;
-    }
-  }
-
-  // Set the global activateSection function
-  activateSection = function(id) {
-    navLinks.forEach(l => l.classList.toggle('active', l.dataset.section === id));
-    const show = id === 'cocktails';
-    logo.classList.toggle('show', show);
-    divider.classList.toggle('show', show);
-    loadPage(id);
-  };
-
-  // Handle nav link clicks with History API
-  navLinks.forEach(link =>
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const section = link.dataset.section;
-      navigateTo(section, true);
-    })
-  );
-
-  // Handle browser back/forward buttons
-  window.addEventListener('popstate', (e) => {
-    const section = e.state?.section || getSectionFromPath();
-    activateSection(section);
-  });
+  const currentSection = getCurrentSectionFromPath();
+  navLinks.forEach(l => l.classList.toggle('active', l.dataset.section === currentSection));
+  const showLogo = currentSection === 'cocktails';
+  if (logo) logo.classList.toggle('show', showLogo);
+  if (divider) divider.classList.toggle('show', showLogo);
 
   function updateSticky() {
+    if (!navBar) return;
     const stuck = navBar.getBoundingClientRect().top <= 0;
     navBar.classList.toggle('stuck', stuck);
-    document.getElementById('siteHeroSmall')
-        .classList.toggle('show', stuck);
+    const heroSmall = document.getElementById('siteHeroSmall');
+    if (heroSmall) heroSmall.classList.toggle('show', stuck);
   }
-  window.addEventListener('scroll',  updateSticky, { passive:true });
-  window.addEventListener('resize',  updateSticky);
-  updateSticky();
+  if (navBar) {
+    window.addEventListener('scroll', updateSticky, { passive: true });
+    window.addEventListener('resize', updateSticky);
+    updateSticky();
+  }
   // cache for full recipes loaded from assets/data/recipes.json
   let recipesCache = null;
   let categoriesCache = null;
@@ -150,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initCocktailModals() {
     const cards    = document.querySelectorAll('.cocktail-card');
     const overlay  = document.getElementById('modalOverlay');
+    if (!overlay || !cards.length) return;
     let mImg       = document.getElementById('modalImg');
     const mTitle   = document.getElementById('modalTitle');
     const mIng     = document.getElementById('modalIngredients');
@@ -402,6 +316,9 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.onclick  = e => { if (e.target === overlay) resetModal(); };
   }
 
+  // Initialize cocktails modal behavior only if present on this page
+  initCocktailModals();
+
   // Request notification permission for order ready alerts
   requestNotificationPermission();
 
@@ -414,12 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 🔰 Initial load based on URL path (deep linking)
-  const first = getSectionFromPath();
-  // Replace current state to ensure back button works correctly
-  const initialUrl = first === DEFAULT_ROUTE ? '/' : `/${first}.html`;
-  window.history.replaceState({ section: first }, '', initialUrl);
-  activateSection(first);
 });
 
 // Helper: update cart count badge from localStorage

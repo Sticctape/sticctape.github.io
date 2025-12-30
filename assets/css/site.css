@@ -11,15 +11,23 @@ body::after{
   content:"";
   position:fixed;inset:0;
   background:url("../bg.png") center/cover no-repeat;
-  opacity:0;animation:bgReveal 1.6s ease-out .3s forwards;
+  opacity:1;
   z-index:-2;pointer-events:none;
 }
 body::before{
   content:"";
   position:fixed;inset:0;
   background:rgba(0,0,0,.5);
-  opacity:0;animation:overlayReveal 1.6s ease-out .3s forwards;
+  opacity:1;
   z-index:-1;pointer-events:none;
+}
+
+/* Intro animation only on landing page */
+body.is-landing::after{
+  opacity:0;animation:bgReveal 1.6s ease-out .3s forwards;
+}
+body.is-landing::before{
+  opacity:0;animation:overlayReveal 1.6s ease-out .3s forwards;
 }
 @keyframes bgReveal{to{opacity:1}}
 @keyframes overlayReveal{to{opacity:1}}
@@ -32,10 +40,14 @@ body::before{
 
 /* ─────────────────────────  HERO (desktop)  ────────────────────── */
 header.hero{
-  position:relative;width:100%;height:100vh;
+  position:relative;width:100%;height:150px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  animation:heroSlideUp 1.6s ease-out .3s forwards;
   padding-bottom:.05rem;z-index:10;
+}
+
+body.is-landing header.hero{
+  height:100vh;
+  animation:heroSlideUp 1.6s ease-out .3s forwards;
 }
 @keyframes heroSlideUp{to{height:150px}}
 #siteHeroBig{max-width:260px;margin-bottom:1rem}
@@ -54,8 +66,12 @@ header.hero{
 /* ─────────────────────────  NAVBAR  ────────────────────────────── */
 nav.site-nav{
   position:sticky;top:0;z-index:9;
-  opacity:0;animation:navFadeIn .4s ease-out 1.9s forwards;
+  opacity:1;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+}
+
+body.is-landing nav.site-nav{
+  opacity:0;animation:navFadeIn .4s ease-out 1.9s forwards;
 }
 @keyframes navFadeIn{to{opacity:1}}
 
@@ -273,7 +289,9 @@ nav.site-nav a.active{
 
 
 /* ─────────────────────────  CONTENT WRAPPERS  ──────────────────── */
-main{opacity:0;animation:contentFade .8s ease-out 2s forwards;padding:2rem 8%;}
+main{opacity:1;padding:2rem 8%;}
+
+body.is-landing main{opacity:0;animation:contentFade .8s ease-out 2s forwards;}
 @keyframes contentFade{to{opacity:1}}
 .content-section{display:none;max-width:900px;margin:0 auto;padding:2rem 0;line-height:1.6}
 .content-section.active{display:block}
