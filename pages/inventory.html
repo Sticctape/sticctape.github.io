@@ -442,8 +442,11 @@
         e.stopPropagation();
         const id = card.getAttribute('data-id');
         const bottle = id ? allBottles.find(b => String(b.id) === String(id)) : null;
-        const imgEl = card.querySelector('img');
-        if (imagePreviewImg && imgEl) imagePreviewImg.src = imgEl.src;
+        
+        // Use uploaded image for popout if available, otherwise use card's generic placeholder
+        const uploadedImage = card.getAttribute('data-uploaded-image');
+        if (imagePreviewImg) imagePreviewImg.src = uploadedImage || card.querySelector('img')?.src || '';
+        
         if (bottle) {
           if (previewTitle) previewTitle.textContent = `${bottle.brand || ''} ${bottle.product_name || ''}`.trim();
           if (previewBaseSpirit) previewBaseSpirit.textContent = bottle.base_spirit || '';
@@ -604,12 +607,14 @@
     emptyState.classList.add('is-hidden');
     bottleGrid.innerHTML = filtered.map(bottle => {
       const placeholder = spiritPlaceholders[bottle.base_spirit?.toLowerCase()] || spiritPlaceholders.other;
-      const imageSrc = bottle.image_url || placeholder;
       
-      const isPlaceholder = !bottle.image_url;
+      // Always use generic placeholder for card display, store uploaded image for popout
+      const cardImageSrc = placeholder;
+      const uploadedImageSrc = bottle.image_url || '';
+      
       return `
-        <article class="bottle-card" data-id="${bottle.id}">
-          <img class="${isPlaceholder ? 'placeholder-img' : ''}" src="${imageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
+        <article class="bottle-card" data-id="${bottle.id}" data-uploaded-image="${uploadedImageSrc}">
+          <img class="placeholder-img" src="${cardImageSrc}" alt="${bottle.brand} ${bottle.product_name}" />
           <div class="bottle-info">
             <div class="bottle-title">
               <h3>${bottle.brand || 'Unknown'}</h3>
@@ -1146,8 +1151,16 @@
           throw new Error(errMsg);
         }
         
-        // Get the bottle ID (either newly created or edited)
-        const bottleId = editingBottleId || allBottles[0]?.id;
+        // Get the bottle ID from the response or use editingBottleId
+        let bottleId = editingBottleId;
+        if (!editingBottleId) {
+          // For new bottles, parse the response to get the created bottle ID
+          const data = await resp.json();
+          bottleId = data.bottle?.id;
+          if (!bottleId) {
+            console.error('⛔ No bottle ID in response:', data);
+          }
+        }
         
         // Upload image if one was selected
         if (selectedImageFile && bottleId) {
