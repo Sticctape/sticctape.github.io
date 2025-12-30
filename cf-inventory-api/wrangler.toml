@@ -21,7 +21,6 @@ binding = "DB"
 database_name = "streetersdistillery_inventory"
 database_id = "a8d583e8-faa0-43b2-97a7-8b600919fe99"
 
-# Uncomment if you add R2 later for images
-#[[r2_buckets]]
-#binding = "IMAGES"
-#bucket_name = "streetersdistillery-images"
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "streetersdistillery-images"

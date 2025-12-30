@@ -1,6 +1,6 @@
 export interface Env {
   DB: D1Database;
-  // IMAGES: R2Bucket; // future
+  IMAGES: R2Bucket;
   JWT_SECRET?: string;        // set via `wrangler secret put JWT_SECRET`
   JWT_AUD?: string;           // optional audience check
   JWT_ISS?: string;           // optional issuer check
@@ -223,7 +223,7 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
 
   const {
     brand, product_name, base_spirit, style, abv, volume_ml, quantity = 1,
-    status = 'sealed', purchase_date, price_cents, currency = 'USD', location, notes, image_url, tags
+    status = 'sealed', purchase_date, price_cents, currency = 'USD', location, notes, image_url, upc, tags
   } = body || {};
 
   // Normalize undefined -> null for optional fields (D1 rejects undefined)
@@ -238,6 +238,7 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
   const locationVal = location ?? null;
   const notesVal = notes ?? null;
   const imageVal = image_url ?? null;
+  const upcVal = upc ?? null;
 
   if (!brand || !product_name) {
     return json({ error: 'brand and product_name are required' }, { status: 400 });
@@ -248,10 +249,10 @@ async function handleCreateBottle(request: Request, env: Env, ownerId: string) {
     const normalizedOwnerId = ownerId.startsWith('owner:') ? 'owner:primary' : ownerId;
     const stmt = env.DB.prepare(`INSERT INTO bottles (
       id, owner_id, brand, product_name, base_spirit, style, abv, volume_ml, quantity, status,
-      purchase_date, price_cents, currency, location, notes, image_url
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      purchase_date, price_cents, currency, location, notes, image_url, upc
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(id, normalizedOwnerId, brand, product_name, base, styleVal, abvVal, volVal, quantity, statusVal,
-          purchaseVal, priceVal, currencyVal, locationVal, notesVal, imageVal);
+          purchaseVal, priceVal, currencyVal, locationVal, notesVal, imageVal, upcVal);
 
     await stmt.run();
   } catch (err: any) {
@@ -293,7 +294,7 @@ async function handleUpdateBottle(request: Request, env: Env, id: string, ownerI
 
   const fields = [
     'brand','product_name','base_spirit','style','abv','volume_ml','quantity','status',
-    'purchase_date','price_cents','currency','location','notes','image_url'
+    'purchase_date','price_cents','currency','location','notes','image_url','upc'
   ] as const;
 
   const updates: string[] = [];
@@ -355,6 +356,154 @@ async function handleDeleteBottle(request: Request, env: Env, id: string, ownerI
   return json({ ok: true });
 }
 
+async function handleImageUpload(request: Request, env: Env, bottleId: string, ownerId: string) {
+  // Verify bottle ownership first
+  const bottle = await env.DB.prepare(`SELECT owner_id FROM bottles WHERE id = ?`).bind(bottleId).first();
+  if (!bottle) {
+    console.error(`[IMG] Bottle not found: ${bottleId}`);
+    return json({ error: 'not found' }, { status: 404 });
+  }
+  
+  if (!(ownerId && bottle.owner_id && (
+        (ownerId.startsWith('owner:') && String(bottle.owner_id).startsWith('owner:')) ||
+        (bottle.owner_id === ownerId)
+      ))) {
+    console.error(`[IMG] Access denied for bottle ${bottleId}. ownerId: ${ownerId}, bottleOwner: ${bottle.owner_id}`);
+    return json({ error: 'forbidden' }, { status: 403 });
+  }
+
+  try {
+    const contentType = request.headers.get('content-type') || 'image/jpeg';
+    console.log(`[IMG] Received upload: ${bottleId}, contentType: ${contentType}`);
+    
+    // Validate content type is an image
+    if (!contentType.startsWith('image/')) {
+      return json({ error: 'Invalid file type. Only images are allowed.' }, { status: 400 });
+    }
+
+    const buffer = await request.arrayBuffer();
+    console.log(`[IMG] Buffer size: ${buffer.byteLength} bytes`);
+    
+    // Check file size (max 5MB)
+    if (buffer.byteLength > 5 * 1024 * 1024) {
+      return json({ error: 'File too large. Maximum 5MB.' }, { status: 400 });
+    }
+
+    // Generate unique filename with timestamp
+    const ext = contentType.split('/')[1].replace('jpeg', 'jpg');
+    const filename = `bottles/${bottleId}-${Date.now()}.${ext}`;
+    console.log(`[IMG] Uploading to R2: ${filename}`);
+    
+    // Upload to R2
+    await env.IMAGES.put(filename, buffer, {
+      httpMetadata: {
+        contentType: contentType,
+        cacheControl: 'public, max-age=31536000' // Cache for 1 year
+      }
+    });
+    console.log(`[IMG] R2 upload successful: ${filename}`);
+
+    // Generate public URL for the image
+    const imageUrl = `https://images.streeter.cc/${filename}`;
+    
+    // Update bottle record with image URL
+    console.log(`[IMG] Updating database - bottleId: ${bottleId}, imageUrl: ${imageUrl}`);
+    await env.DB.prepare(`UPDATE bottles SET image_url = ?, updated_at = datetime('now') WHERE id = ?`)
+      .bind(imageUrl, bottleId).run();
+    console.log(`[IMG] Database updated successfully`);
+
+    return json({ 
+      success: true, 
+      imageUrl: imageUrl,
+      filename: filename
+    });
+  } catch (err: any) {
+    console.error(`[IMG] Error uploading image: ${err.message}`, err);
+    return json({ error: `Image upload failed: ${err.message}` }, { status: 500 });
+  }
+}
+
+async function handleImageDelete(request: Request, env: Env, bottleId: string, ownerId: string) {
+  // Verify bottle ownership first
+  const bottle = await env.DB.prepare(`SELECT owner_id, image_url FROM bottles WHERE id = ?`).bind(bottleId).first();
+  if (!bottle) return json({ error: 'not found' }, { status: 404 });
+  
+  if (!(ownerId && bottle.owner_id && (
+        (ownerId.startsWith('owner:') && String(bottle.owner_id).startsWith('owner:')) ||
+        (bottle.owner_id === ownerId)
+      ))) {
+    return json({ error: 'forbidden' }, { status: 403 });
+  }
+
+  try {
+    // Extract filename from URL if it exists
+    if (bottle.image_url) {
+      const match = bottle.image_url.match(/\/([^/]+\/[^/]+)$/);
+      if (match) {
+        const filename = match[1];
+        // Delete from R2
+        await env.IMAGES.delete(filename);
+      }
+    }
+
+    // Clear image URL from database
+    await env.DB.prepare(`UPDATE bottles SET image_url = NULL, updated_at = datetime('now') WHERE id = ?`)
+      .bind(bottleId).run();
+
+    return json({ success: true });
+  } catch (err: any) {
+    return json({ error: `Image delete failed: ${err.message}` }, { status: 500 });
+  }
+}
+
+async function handleUPCLookup(request: Request, env: Env, upc: string) {
+  // This endpoint acts as a CORS proxy for the UPCItemDB API
+  // Benefits: 
+  // 1. Handles CORS (browser can't call UPCItemDB directly)
+  // 2. Hides API endpoint from client
+  // 3. Enables rate limiting and caching
+  // 4. Could cache results in D1/KV for frequently looked up items
+  
+  // Validate UPC format (should be numeric and reasonable length)
+  if (!upc || !/^\d{6,14}$/.test(upc)) {
+    return json({ error: 'Invalid UPC format' }, { status: 400 });
+  }
+
+  try {
+    const apiUrl = `https://api.upcitemdb.com/prod/trial/lookup?upc=${upc}`;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'BarInventory/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      return json({ error: `UPC API returned status ${response.status}` }, { status: response.status });
+    }
+
+    const data = await response.json();
+    
+    // Check if we got results
+    if (data.code !== 'OK' || !data.items || data.items.length === 0) {
+      return json({ error: 'No product found for this UPC', data }, { status: 404 });
+    }
+
+    // Return the first item with all its data
+    return json({ 
+      success: true, 
+      product: data.items[0],
+      rateLimit: {
+        limit: response.headers.get('x-ratelimit-limit'),
+        remaining: response.headers.get('x-ratelimit-remaining'),
+        reset: response.headers.get('x-ratelimit-reset')
+      }
+    });
+  } catch (err: any) {
+    return json({ error: `UPC lookup failed: ${err.message}` }, { status: 500 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const pre = corsPreflight(request);
@@ -365,6 +514,8 @@ export default {
       const rawPath = url.pathname.replace(/\/$/, '');
       const isAdmin = rawPath.startsWith('/api/admin');
       const path = isAdmin ? rawPath.replace('/api/admin', '/api') : rawPath;
+      
+      console.log(`[ROUTE] ${request.method} ${rawPath} -> path: ${path}, isAdmin: ${isAdmin}`);
 
       // Block disallowed origins early
       const origin = request.headers.get('Origin');
@@ -395,6 +546,47 @@ export default {
           isStaff: isStaff,
           isOwner: !!ownerId
         }), request);
+      }
+
+      // UPC lookup endpoint (admin only, owner required)
+      const upcMatch = path.match(/\/api\/upc\/(.+)$/);
+      if (upcMatch && request.method === 'GET') {
+        if (!isAdmin) return withCORS(json({ error: 'not found' }, { status: 404 }), request);
+        if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
+        return withCORS(await handleUPCLookup(request, env, upcMatch[1]), request);
+      }
+
+      // Image upload endpoint: POST /api/admin/bottles/{id}/image
+      // Image delete endpoint: DELETE /api/admin/bottles/{id}/image
+      const imageMatch = path.match(/\/api\/bottles\/(.+?)\/image$/);
+      if (imageMatch) {
+        const bottleId = imageMatch[1];
+        console.log(`[IMG] Route match! bottleId: ${bottleId}, method: ${request.method}, path: ${path}`);
+        
+        if (request.method === 'POST') {
+          if (!isAdmin) {
+            console.log(`[IMG] Not admin path`);
+            return withCORS(json({ error: 'not found' }, { status: 404 }), request);
+          }
+          if (!ownerId) {
+            console.log(`[IMG] No owner ID`);
+            return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
+          }
+          console.log(`[IMG] Uploading image for bottle ${bottleId}, ownerId: ${ownerId}`);
+          return withCORS(await handleImageUpload(request, env, bottleId, ownerId), request);
+        }
+        
+        if (request.method === 'DELETE') {
+          if (!isAdmin) return withCORS(json({ error: 'not found' }, { status: 404 }), request);
+          if (!ownerId) return withCORS(json({ error: 'Unauthorized' }, { status: 401 }), request);
+          console.log(`[IMG] Deleting image for bottle ${bottleId}`);
+          return withCORS(await handleImageDelete(request, env, bottleId, ownerId), request);
+        }
+      } else {
+        // Log why route didn't match
+        if (path.includes('/image')) {
+          console.log(`[IMG] Route NOT matched! path: ${path}, isAdmin: ${isAdmin}`);
+        }
       }
 
       if (path.endsWith('/api/bottles')) {

@@ -75,6 +75,9 @@
       <h2 id="bottleModalTitle">Add Bottle</h2>
     </div>
     <div class="modal-body">
+      <div class="modal-panels-container">
+        <!-- Main Form Panel -->
+        <div class="modal-panel modal-form-panel active">
       <form id="bottleForm">
         <input type="hidden" id="bottleId" />
         
@@ -135,6 +138,10 @@
             <label for="bottleQuantity">Quantity *</label>
             <input type="number" id="bottleQuantity" step="1" min="0" value="1" required />
           </div>
+          <div class="form-group">
+            <label for="bottleUpc">UPC Code</label>
+            <input type="text" id="bottleUpc" placeholder="e.g. 619947000020" pattern="\d{6,14}" />
+          </div>
         </div>
         
         <div class="form-row">
@@ -163,6 +170,22 @@
           <textarea id="bottleNotes" rows="3" placeholder="Tasting notes, pairing suggestions, etc."></textarea>
         </div>
         
+        <div class="form-group" id="imageUploadGroup" style="display: none;">
+          <label for="bottleImage">Bottle Image</label>
+          <div class="image-upload-area">
+            <input type="file" id="bottleImage" accept="image/*" style="display: none;" />
+            <div class="image-preview-container">
+              <img id="imagePreviewThumb" style="display: none; max-width: 150px; max-height: 150px; border-radius: 6px;" />
+              <div id="imageUploadPlaceholder" class="image-upload-placeholder">
+                <span>📸 Click to select image</span>
+                <small>Max 5MB</small>
+              </div>
+            </div>
+            <button type="button" class="delete-btn" id="clearImageBtn" style="margin-top: 0.5rem; display: none; background: rgba(255, 100, 100, 0.15); border-color: rgba(255, 100, 100, 0.3); color: #ff6b6b;">Clear Image</button>
+            <div id="imageUploadStatus" style="margin-top: 0.5rem; font-size: 0.85rem; display: none;"></div>
+          </div>
+        </div>
+        
         <div class="form-actions">
           <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn">📷 Scan Barcode</button>
           <div class="form-actions-right">
@@ -171,6 +194,29 @@
           </div>
         </div>
       </form>
+        </div>
+        
+        <!-- UPC Lookup Panel -->
+        <div class="modal-panel modal-upc-panel">
+          <div class="upc-panel-header">
+            <button type="button" class="back-btn" id="upcBackBtn">← Back to Form</button>
+            <h3>Enter UPC Barcode</h3>
+          </div>
+          <p style="margin-bottom: 1rem; color: #999; font-size: 0.9rem;">Enter the UPC barcode number to lookup product details.</p>
+          <form id="barcodeForm">
+            <div class="form-group">
+              <label for="upcInput">UPC Code *</label>
+              <input type="text" id="upcInput" placeholder="e.g. 619947000020" pattern="\d{6,14}" required />
+              <small style="color: #999;">Enter 6-14 digit UPC code</small>
+            </div>
+            <div id="barcodeLookupStatus" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none; font-size: 0.9rem;"></div>
+            <div class="form-actions" style="margin-top: 1.5rem;">
+              <button type="button" class="cancel-btn" id="upcCancelBtn">Cancel</button>
+              <button type="submit" class="submit-btn" id="barcodeLookupBtn">Lookup</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -218,7 +264,22 @@
       <button type="button" class="close-btn" id="closePreviewBtn">Close</button>
     </div>
   </div>
+</div>
+
+<!-- Image Selection Modal (for UPC results with multiple images) -->
+<div class="modal-overlay" id="imageSelectOverlay">
+  <div class="modal image-select-modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2>Select Product Image</h2>
+    </div>
+    <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+      <div id="imageSelectGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;"></div>
+    </div>
+    <div class="form-actions" style="padding: 1rem; border-top: 1px solid #eee;">
+      <button type="button" class="cancel-btn" id="imageSelectCancel">Cancel</button>
+    </div>
   </div>
+</div>
 
 <script>
 (() => {
@@ -280,6 +341,14 @@
     const bottleForm = document.getElementById('bottleForm');
     const scanBarcodeBtn = document.getElementById('scanBarcodeBtn');
     
+    const modalFormPanel = document.querySelector('.modal-form-panel');
+    const modalUpcPanel = document.querySelector('.modal-upc-panel');
+    const upcBackBtn = document.getElementById('upcBackBtn');
+    const upcCancelBtn = document.getElementById('upcCancelBtn');
+    const barcodeForm = document.getElementById('barcodeForm');
+    const upcInput = document.getElementById('upcInput');
+    const barcodeLookupStatus = document.getElementById('barcodeLookupStatus');
+    
     const deleteModal = document.getElementById('deleteModalOverlay');
     const deleteMessage = document.getElementById('deleteMessage');
     const deleteConfirmBtn = document.getElementById('deleteModalConfirm');
@@ -296,6 +365,15 @@
     const previewLocation = document.getElementById('previewLocation');
     const previewTags = document.getElementById('previewTags');
     const previewNotes = document.getElementById('previewNotes');
+    
+    // Image upload elements
+    const imageUploadGroup = document.getElementById('imageUploadGroup');
+    const bottleImage = document.getElementById('bottleImage');
+    const imagePreviewThumb = document.getElementById('imagePreviewThumb');
+    const imageUploadPlaceholder = document.getElementById('imageUploadPlaceholder');
+    const uploadImageBtn = document.getElementById('uploadImageBtn');
+    const deleteImageBtn = document.getElementById('deleteImageBtn');
+    const imageUploadStatus = document.getElementById('imageUploadStatus');
     
     console.log('🔵 DOM elements found:', {
       bottleGrid: !!bottleGrid,
@@ -327,6 +405,11 @@
       if (imagePreviewOverlay && imagePreviewOverlay.parentElement !== document.body) {
         document.body.appendChild(imagePreviewOverlay);
         console.log('🔧 Moved imagePreviewOverlay to <body>');
+      }
+      const imageSelectOverlay = document.getElementById('imageSelectOverlay');
+      if (imageSelectOverlay && imageSelectOverlay.parentElement !== document.body) {
+        document.body.appendChild(imageSelectOverlay);
+        console.log('🔧 Moved imageSelectOverlay to <body>');
       }
     } catch (moveErr) {
       console.warn('⚠️ Could not move modals to body:', moveErr);
@@ -559,6 +642,17 @@
       bottleModalTitle.textContent = 'Add Bottle';
       bottleForm.reset();
       document.getElementById('bottleId').value = '';
+      
+      // Reset image state for new bottle
+      selectedImageFile = null;
+      bottleImage.value = '';
+      imagePreviewThumb.src = '';
+      imagePreviewThumb.style.display = 'none';
+      imageUploadPlaceholder.style.display = 'flex';
+      clearImageBtn.style.display = 'none';
+      imageUploadStatus.style.display = 'none';
+      imageUploadGroup.style.display = 'block';
+      
       console.log('🔵 Adding active class to modal');
       bottleModal.classList.add('active');
       console.log('🔵 Modal classes:', bottleModal.className);
@@ -583,8 +677,28 @@
     document.getElementById('bottlePrice').value = bottle.price_cents ? (bottle.price_cents / 100).toFixed(2) : '';
     document.getElementById('bottlePurchaseDate').value = bottle.purchase_date || '';
     document.getElementById('bottleLocation').value = bottle.location || '';
+    document.getElementById('bottleUpc').value = bottle.upc || '';
       document.getElementById('bottleTags').value = Array.isArray(bottle.tags) ? bottle.tags.join(', ') : '';
       document.getElementById('bottleNotes').value = bottle.notes || '';
+      
+      // Show image upload area when editing
+      imageUploadGroup.style.display = 'block';
+      selectedImageFile = null;
+      bottleImage.value = '';
+      
+      // Populate image preview if exists
+      if (bottle.image_url) {
+        imagePreviewThumb.src = bottle.image_url;
+        imagePreviewThumb.style.display = 'block';
+        imageUploadPlaceholder.style.display = 'none';
+        clearImageBtn.style.display = 'inline-block';
+      } else {
+        imagePreviewThumb.src = '';
+        imagePreviewThumb.style.display = 'none';
+        imageUploadPlaceholder.style.display = 'flex';
+        clearImageBtn.style.display = 'none';
+      }
+      imageUploadStatus.style.display = 'none';
       
       bottleModal.classList.add('active');
     }
@@ -593,11 +707,370 @@
     function closeBottleModal() {
       bottleModal.classList.remove('active');
       editingBottleId = null;
+      // Reset to form panel when closing
+      setTimeout(() => {
+        showFormPanel();
+        upcInput.value = '';
+        barcodeLookupStatus.style.display = 'none';
+      }, 300);
     }
 
     function closeDeleteModal() {
       deleteModal.classList.remove('active');
       deletingBottleId = null;
+    }
+
+    // Switch to UPC panel
+    function showUpcPanel() {
+      modalFormPanel.classList.remove('active');
+      modalUpcPanel.classList.add('active');
+      upcInput.value = '';
+      barcodeLookupStatus.style.display = 'none';
+      setTimeout(() => upcInput.focus(), 350);
+    }
+
+    // Switch back to form panel
+    function showFormPanel() {
+      modalUpcPanel.classList.remove('active');
+      modalFormPanel.classList.add('active');
+    }
+
+    // Show status message in UPC panel
+    function showBarcodeStatus(message, type = 'info') {
+      barcodeLookupStatus.textContent = message;
+      barcodeLookupStatus.style.display = 'block';
+      barcodeLookupStatus.style.backgroundColor = type === 'error' ? '#fee' : type === 'success' ? '#efe' : '#eef';
+      barcodeLookupStatus.style.color = type === 'error' ? '#c00' : type === 'success' ? '#060' : '#006';
+    }
+
+    // Handle barcode lookup
+    async function lookupBarcode(e) {
+      e.preventDefault();
+      
+      const upc = upcInput.value.trim();
+      if (!upc || !/^\d{6,14}$/.test(upc)) {
+        showBarcodeStatus('Please enter a valid 6-14 digit UPC code', 'error');
+        return;
+      }
+
+      try {
+        showBarcodeStatus('Looking up UPC...', 'info');
+        
+        const resp = await fetch(`${API_ADMIN}/upc/${upc}`, {
+          method: 'GET',
+          headers: getAuthHeaders(),
+          credentials: 'include',
+          mode: 'cors'
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        
+        if (!data.success || !data.product) {
+          showBarcodeStatus('No product found for this UPC', 'error');
+          return;
+        }
+
+        // Show rate limit info
+        if (data.rateLimit && data.rateLimit.remaining) {
+          console.log(`🔵 UPC API rate limit: ${data.rateLimit.remaining}/${data.rateLimit.limit} remaining`);
+        }
+
+        // Switch back to form and populate fields
+        showFormPanel();
+        populateFormFromUPC(data.product);
+        
+      } catch (err) {
+        console.error('⛔ Error looking up UPC:', err);
+        showBarcodeStatus(`Lookup failed: ${err.message}`, 'error');
+      }
+    }
+
+    // Populate bottle form from UPC data
+    function populateFormFromUPC(product) {
+      console.log('🔵 Populating form from UPC data:', product);
+      
+      // Set the UPC code that was just looked up
+      if (product.upc) {
+        document.getElementById('bottleUpc').value = product.upc;
+      }
+      
+      // Parse brand and product name from title
+      // Example: "Tito's Handmade Vodka - 750ml Bottle"
+      const title = product.title || '';
+      const brand = product.brand || '';
+      
+      // Set brand
+      if (brand) {
+        document.getElementById('bottleBrand').value = brand;
+      }
+      
+      // Set product name (use title if no specific product name)
+      let productName = title;
+      if (brand && title.startsWith(brand)) {
+        productName = title.substring(brand.length).trim();
+        // Remove leading dashes
+        productName = productName.replace(/^[-–—]\s*/, '');
+      }
+      document.getElementById('bottleProduct').value = productName;
+      
+      // Try to detect base spirit from category or title
+      const category = (product.category || '').toLowerCase();
+      const titleLower = title.toLowerCase();
+      
+      let baseSpirit = '';
+      if (category.includes('vodka') || titleLower.includes('vodka')) baseSpirit = 'vodka';
+      else if (category.includes('whiskey') || titleLower.includes('whiskey')) baseSpirit = 'whiskey';
+      else if (category.includes('bourbon') || titleLower.includes('bourbon')) baseSpirit = 'bourbon';
+      else if (category.includes('rye') || titleLower.includes(' rye')) baseSpirit = 'rye';
+      else if (category.includes('scotch') || titleLower.includes('scotch')) baseSpirit = 'scotch';
+      else if (category.includes('rum') || titleLower.includes('rum')) baseSpirit = 'rum';
+      else if (category.includes('gin') || titleLower.includes('gin')) baseSpirit = 'gin';
+      else if (category.includes('tequila') || titleLower.includes('tequila')) baseSpirit = 'tequila';
+      else if (category.includes('mezcal') || titleLower.includes('mezcal')) baseSpirit = 'mezcal';
+      else if (category.includes('brandy') || titleLower.includes('brandy')) baseSpirit = 'brandy';
+      else if (category.includes('cognac') || titleLower.includes('cognac')) baseSpirit = 'cognac';
+      
+      if (baseSpirit) {
+        document.getElementById('bottleBaseSpirit').value = baseSpirit;
+      }
+      
+      // Parse volume from title (e.g., "750ml", "750 ml", "1L", "1.75L")
+      const volumeMatch = title.match(/(\d+(?:\.\d+)?)\s*(ml|l)/i);
+      if (volumeMatch) {
+        let volume = parseFloat(volumeMatch[1]);
+        const unit = volumeMatch[2].toLowerCase();
+        if (unit === 'l') volume *= 1000; // Convert liters to ml
+        document.getElementById('bottleVolume').value = Math.round(volume);
+      }
+      
+      // Set price if available (convert to dollars)
+      if (product.offers && product.offers.length > 0) {
+        const prices = product.offers.map(o => o.price).filter(p => p > 0);
+        if (prices.length > 0) {
+          const avgPrice = prices.reduce((a, b) => a + b) / prices.length;
+          document.getElementById('bottlePrice').value = avgPrice.toFixed(2);
+        }
+      }
+      
+      // Set notes from description
+      if (product.description) {
+        document.getElementById('bottleNotes').value = product.description;
+      }
+      
+      // Auto-fetch and preview the product image(s)
+      if (product.images && product.images.length > 0) {
+        console.log('🔵 Product images available:', product.images);
+        if (product.images.length === 1) {
+          // Single image - just use it
+          downloadAndPreviewImage(product.images[0], product.title || 'bottle');
+        } else {
+          // Multiple images - let user choose
+          showImageSelector(product.images, product.title || 'bottle');
+        }
+      }
+    }
+
+    // Show image selector for multiple images
+    function showImageSelector(imageUrls, filename) {
+      const grid = document.getElementById('imageSelectGrid');
+      grid.innerHTML = '';
+      
+      imageUrls.forEach((url, index) => {
+        const thumbContainer = document.createElement('div');
+        thumbContainer.style.cssText = 'position: relative; cursor: pointer; border-radius: 6px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s; background: #f0f0f0; aspect-ratio: 1;';
+        thumbContainer.onmouseenter = () => thumbContainer.style.borderColor = '#4CAF50';
+        thumbContainer.onmouseleave = () => thumbContainer.style.borderColor = 'transparent';
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+        img.onload = () => img.style.opacity = '1';
+        img.onerror = () => {
+          img.style.display = 'none';
+          thumbContainer.style.display = 'flex';
+          thumbContainer.style.alignItems = 'center';
+          thumbContainer.style.justifyContent = 'center';
+          thumbContainer.innerHTML = '❌ Failed to load';
+        };
+        
+        thumbContainer.appendChild(img);
+        thumbContainer.onclick = async () => {
+          console.log('🔵 User selected image', index + 1);
+          await downloadAndPreviewImage(url, filename);
+          closeImageSelector();
+        };
+        
+        grid.appendChild(thumbContainer);
+      });
+      
+      document.getElementById('imageSelectOverlay').classList.add('active');
+    }
+
+    function closeImageSelector() {
+      document.getElementById('imageSelectOverlay').classList.remove('active');
+    }
+
+    // Download image from UPC lookup and prompt user
+    async function downloadAndPreviewImage(imageUrl, filename) {
+      try {
+        console.log('🔵 Downloading image from UPC lookup:', imageUrl);
+        
+        // Fetch the image
+        const response = await fetch(imageUrl);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const blob = await response.blob();
+        const ext = blob.type.split('/')[1] || 'jpg';
+        const file = new File([blob], `${filename.replace(/\s+/g, '-')}.${ext}`, { type: blob.type });
+        
+        // Set and preview the image
+        setImageFile(file);
+        showImagePreview(file);
+        
+      } catch (err) {
+        console.error('⛔ Failed to download image from UPC lookup:', err);
+        // Don't show error - just let user select manually if they want
+      }
+    }
+    
+    // Store file for later upload
+    let selectedImageFile = null;
+    
+    function setImageFile(file) {
+      selectedImageFile = file;
+      console.log('🔵 Image file selected:', file.name, file.size, 'bytes');
+    }
+    
+    function showImagePreview(file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        imagePreviewThumb.src = event.target?.result;
+        imagePreviewThumb.style.display = 'block';
+        imageUploadPlaceholder.style.display = 'none';
+        clearImageBtn.style.display = 'inline-block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Image upload handlers
+    function showImageStatus(message, type = 'info') {
+      imageUploadStatus.textContent = message;
+      imageUploadStatus.style.display = 'block';
+      imageUploadStatus.className = type;
+    }
+
+    function onImageSelected(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showImageStatus('Please select an image file', 'error');
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showImageStatus('File too large. Maximum 5MB.', 'error');
+        return;
+      }
+
+      // Store and preview
+      setImageFile(file);
+      showImagePreview(file);
+      imageUploadStatus.style.display = 'none';
+    }
+    
+    async function clearImageFile() {
+      // If editing an existing bottle with an image, delete it from R2
+      if (editingBottleId && imagePreviewThumb.src) {
+        try {
+          console.log('🔵 Deleting image for bottle:', editingBottleId);
+          const resp = await fetch(`${API_ADMIN}/bottles/${editingBottleId}/image`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+            credentials: 'include',
+            mode: 'cors'
+          });
+
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${resp.status}`);
+          }
+
+          console.log('✓ Image deleted from R2');
+        } catch (err) {
+          console.error('⛔ Failed to delete image:', err);
+          showImageStatus(`Delete failed: ${err.message}`, 'error');
+          return;
+        }
+      }
+
+      // Clear the UI and selected file
+      selectedImageFile = null;
+      bottleImage.value = '';
+      imagePreviewThumb.src = '';
+      imagePreviewThumb.style.display = 'none';
+      imageUploadPlaceholder.style.display = 'flex';
+      clearImageBtn.style.display = 'none';
+      imageUploadStatus.style.display = 'none';
+    }
+
+    // Auto-upload image after bottle is saved
+    async function uploadImageForBottle(bottleId) {
+      if (!selectedImageFile) {
+        console.log('🔵 No image to upload');
+        return;
+      }
+
+      try {
+        showImageStatus('Uploading image...', 'loading');
+        console.log('🔵 Uploading image for bottle:', bottleId, selectedImageFile.name);
+        
+        // Read file as array buffer for binary upload
+        const arrayBuffer = await selectedImageFile.arrayBuffer();
+        
+        // Build headers with auth and content type
+        const headers = getAuthHeaders();
+        headers['Content-Type'] = selectedImageFile.type;
+        
+        const resp = await fetch(`${API_ADMIN}/bottles/${bottleId}/image`, {
+          method: 'POST',
+          headers: headers,
+          body: arrayBuffer,
+          credentials: 'include',
+          mode: 'cors'
+        });
+
+        console.log('🔵 Upload response status:', resp.status);
+        
+        if (!resp.ok) {
+          let errMsg = `HTTP ${resp.status}`;
+          try {
+            const err = await resp.json();
+            errMsg = err.error || errMsg;
+          } catch (e) {
+            const text = await resp.text();
+            console.error('🔵 Response body:', text);
+          }
+          throw new Error(errMsg);
+        }
+
+        const data = await resp.json();
+        console.log('🔵 Image uploaded successfully:', data.imageUrl);
+        showImageStatus('✓ Image uploaded', 'success');
+        selectedImageFile = null;
+        bottleImage.value = '';
+        
+      } catch (err) {
+        console.error('⛔ Image upload error:', err);
+        showImageStatus(`Image upload failed: ${err.message}`, 'error');
+      }
     }
 
     // Submit bottle form
@@ -617,6 +1090,7 @@
         purchase_date: document.getElementById('bottlePurchaseDate').value || null,
         location: document.getElementById('bottleLocation').value.trim() || null,
         notes: document.getElementById('bottleNotes').value.trim() || null,
+        upc: document.getElementById('bottleUpc').value.trim() || null,
         tags: document.getElementById('bottleTags').value
           .split(',')
           .map(t => t.trim())
@@ -670,6 +1144,15 @@
             }
           } catch {}
           throw new Error(errMsg);
+        }
+        
+        // Get the bottle ID (either newly created or edited)
+        const bottleId = editingBottleId || allBottles[0]?.id;
+        
+        // Upload image if one was selected
+        if (selectedImageFile && bottleId) {
+          console.log('🔵 Auto-uploading image for bottle:', bottleId);
+          await uploadImageForBottle(bottleId);
         }
         
         closeBottleModal();
@@ -822,11 +1305,21 @@
     document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
     deleteConfirmBtn.addEventListener('click', confirmDelete);
     
-    // Scan barcode button (placeholder for future)
-    scanBarcodeBtn.addEventListener('click', () => {
-      alert('Barcode scanning will be implemented soon! This will allow you to scan bottle barcodes and auto-populate details from sites like MegaBev or Total Wine.');
+    // Panel switching handlers
+    scanBarcodeBtn.addEventListener('click', showUpcPanel);
+    upcBackBtn.addEventListener('click', showFormPanel);
+    upcCancelBtn.addEventListener('click', () => {
+      showFormPanel();
+      upcInput.value = '';
+      barcodeLookupStatus.style.display = 'none';
     });
-
+    barcodeForm.addEventListener('submit', lookupBarcode);
+    
+    // Image upload handlers
+    imageUploadPlaceholder?.addEventListener('click', () => bottleImage?.click());
+    bottleImage?.addEventListener('change', onImageSelected);
+    clearImageBtn?.addEventListener('click', clearImageFile);
+    
     // Close modals on overlay click
     bottleModal.addEventListener('click', (e) => {
       if (e.target === bottleModal) closeBottleModal();
@@ -834,6 +1327,19 @@
     deleteModal.addEventListener('click', (e) => {
       if (e.target === deleteModal) closeDeleteModal();
     });
+    
+    // Image selector modal
+    const imageSelectOverlay = document.getElementById('imageSelectOverlay');
+    const imageSelectCancel = document.getElementById('imageSelectCancel');
+    if (imageSelectCancel) {
+      imageSelectCancel.addEventListener('click', closeImageSelector);
+    }
+    if (imageSelectOverlay) {
+      imageSelectOverlay.addEventListener('click', (e) => {
+        if (e.target === imageSelectOverlay) closeImageSelector();
+      });
+    }
+    
     const closePreviewBtn = document.getElementById('closePreviewBtn');
     if (closePreviewBtn) {
       closePreviewBtn.addEventListener('click', () => {
