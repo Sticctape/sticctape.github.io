@@ -251,14 +251,13 @@
       <div class="preview-details">
         <h3 id="previewTitle"></h3>
         <ul class="preview-fields">
-          <li><strong>Base Spirit:</strong> <span id="previewBaseSpirit"></span></li>
+          <li><strong>Base Spirit:</strong> <span id="previewBaseSpirit"></span> <span id="previewCategory" style="opacity: 0.7;"></span></li>
           <li><strong>Style:</strong> <span id="previewStyle"></span></li>
           <li><strong>ABV:</strong> <span id="previewABV"></span></li>
           <li><strong>Volume:</strong> <span id="previewVolume"></span></li>
           <li><strong>Quantity:</strong> <span id="previewQuantity"></span></li>
           <li><strong>Price:</strong> <span id="previewPrice"></span></li>
           <li><strong>Purchase Date:</strong> <span id="previewPurchase"></span></li>
-          <li><strong>Location:</strong> <span id="previewLocation"></span></li>
           <li><strong>Tags:</strong> <span id="previewTags"></span></li>
         </ul>
         <div class="preview-notes" id="previewNotes"></div>
@@ -363,6 +362,7 @@
     const imagePreviewImg = document.getElementById('imagePreviewImg');
     const previewTitle = document.getElementById('previewTitle');
     const previewBaseSpirit = document.getElementById('previewBaseSpirit');
+    const previewCategory = document.getElementById('previewCategory');
     const previewStyle = document.getElementById('previewStyle');
     const previewABV = document.getElementById('previewABV');
     const previewVolume = document.getElementById('previewVolume');
@@ -457,25 +457,25 @@
         if (bottle) {
           if (previewTitle) previewTitle.textContent = `${bottle.brand || ''} ${bottle.product_name || ''}`.trim();
           if (previewBaseSpirit) previewBaseSpirit.textContent = bottle.base_spirit || '';
+          if (previewCategory) previewCategory.textContent = bottle.category ? `(${bottle.category})` : '';
           if (previewStyle) previewStyle.textContent = bottle.style || '';
           if (previewABV) previewABV.textContent = (typeof bottle.abv === 'number' ? `${bottle.abv}%` : (bottle.abv || ''));
           if (previewVolume) previewVolume.textContent = bottle.volume_ml ? `${bottle.volume_ml} ml` : '';
           if (previewQuantity) previewQuantity.textContent = String(bottle.quantity ?? '');
           if (previewPrice) previewPrice.textContent = (typeof bottle.price_cents === 'number') ? `$${(bottle.price_cents/100).toFixed(2)} ${bottle.currency || 'USD'}` : '';
           if (previewPurchase) previewPurchase.textContent = bottle.purchase_date || '';
-          if (previewLocation) previewLocation.textContent = bottle.location || '';
           if (previewTags) previewTags.textContent = Array.isArray(bottle.tags) ? bottle.tags.join(', ') : '';
           if (previewNotes) previewNotes.textContent = bottle.notes || '';
         } else {
           if (previewTitle) previewTitle.textContent = '';
           if (previewBaseSpirit) previewBaseSpirit.textContent = '';
+          if (previewCategory) previewCategory.textContent = '';
           if (previewStyle) previewStyle.textContent = '';
           if (previewABV) previewABV.textContent = '';
           if (previewVolume) previewVolume.textContent = '';
           if (previewQuantity) previewQuantity.textContent = '';
           if (previewPrice) previewPrice.textContent = '';
           if (previewPurchase) previewPurchase.textContent = '';
-          if (previewLocation) previewLocation.textContent = '';
           if (previewTags) previewTags.textContent = '';
           if (previewNotes) previewNotes.textContent = '';
         }
@@ -508,7 +508,31 @@
       syrup: 'assets/bottles/syrup.png',
       foam: 'assets/bottles/foam.png',
       cordial: 'assets/bottles/cordial.png',
-      other: 'assets/bottles/other.png'
+      other: 'assets/bottles/other.png',
+      // Scotch subcategories
+      'single-malt': 'assets/bottles/scotch.png',
+      'blended-malt': 'assets/bottles/scotch.png',
+      'blended': 'assets/bottles/scotch.png',
+      'single-grain': 'assets/bottles/scotch.png',
+      // Rum subcategories
+      'light': 'assets/bottles/rum.png',
+      'gold': 'assets/bottles/rum.png',
+      'dark': 'assets/bottles/rum.png',
+      'spiced': 'assets/bottles/rum.png',
+      // Brandy subcategories
+      'vs': 'assets/bottles/brandy.png',
+      'vsop': 'assets/bottles/brandy.png',
+      'xo': 'assets/bottles/brandy.png',
+      // Whiskey subcategories
+      'blended-whiskey': 'assets/bottles/whiskey.png',
+      // Gin subcategories
+      'london-dry': 'assets/bottles/gin.png',
+      'navy': 'assets/bottles/gin.png',
+      'old-tom': 'assets/bottles/gin.png',
+      // Liqueur subcategories
+      'herbal': 'assets/bottles/liqueur.png',
+      'fruit': 'assets/bottles/liqueur.png',
+      'cream': 'assets/bottles/liqueur.png'
     };
 
     // Category options for each base spirit
