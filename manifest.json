@@ -10,13 +10,13 @@
   "theme_color": "#2a2a2a",
   "icons": [
     {
-      "src": "assets/thestreeters.png",
+      "src": "/assets/thestreeters.png",
       "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/100px_thestreeters.png",
+      "src": "/assets/100px_thestreeters.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
@@ -28,10 +28,10 @@
       "name": "View Cocktails",
       "short_name": "Cocktails",
       "description": "Browse and order cocktails",
-      "url": "/#cocktails",
+      "url": "/cocktails.html",
       "icons": [
         {
-          "src": "assets/100px_thestreeters.png",
+          "src": "/assets/100px_thestreeters.png",
           "sizes": "192x192",
           "type": "image/png"
         }

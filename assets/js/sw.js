@@ -21,7 +21,7 @@ self.addEventListener('notificationclick', event => {
     clients.matchAll({ type: 'window' }).then(clientList => {
       // Check if there's already a window open
       for (let client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
+        if ((client.url === '/' || client.url.endsWith('/')) && 'focus' in client) {
           return client.focus();
         }
       }

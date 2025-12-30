@@ -380,6 +380,7 @@
     const imageUploadPlaceholder = document.getElementById('imageUploadPlaceholder');
     const uploadImageBtn = document.getElementById('uploadImageBtn');
     const deleteImageBtn = document.getElementById('deleteImageBtn');
+    const clearImageBtn = document.getElementById('clearImageBtn');
     const imageUploadStatus = document.getElementById('imageUploadStatus');
     
     console.log('🔵 DOM elements found:', {
@@ -1520,17 +1521,10 @@
   // Export init for SPA reinitialization
   window.initInventory = init;
   
-  // Run init immediately only on direct page load (not SPA)
-  if (document.readyState === 'loading') {
-    // Page is loading, init will run via DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    // Page already loaded, check if we're in SPA context
-    // If #content has our elements, we're in SPA and will be called explicitly
-    // Otherwise we're a direct page load
-    if (!document.getElementById('bottleGrid')) {
-      init();
-    }
-  }
+  // Always run init when script executes
+  // In SPA context: script is re-executed after HTML is loaded into #content
+  // In direct load context: script runs after HTML is parsed
+  // Either way, we need to initialize
+  init();
 })();
 </script>

@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   site.js – unified History API SPA logic
+   site.js – unified History API SPA logic (path-based routing)
    ------------------------------------------------------------------ */
 
 // Global cooldown tracking for order submissions
@@ -9,6 +9,43 @@ const ORDER_COOLDOWN_MS = 60000; // 60 seconds
 let statusPollingInterval = null;
 // Track order statuses for notification purposes
 let previousOrderStatuses = {};
+
+// Valid routes for path-based routing
+const VALID_ROUTES = ['about', 'contact', 'cocktails', 'inventory', 'staff-orders'];
+const DEFAULT_ROUTE = 'about';
+
+// Will be set during DOMContentLoaded
+let activateSection = null;
+
+// Helper: get section ID from pathname
+function getSectionFromPath() {
+  let path = window.location.pathname;
+  // Remove leading slash and trailing slash
+  path = path.replace(/^\/+|\/?$/g, '');
+  // Remove .html extension if present
+  path = path.replace(/\.html$/, '');
+  // Handle index or empty as default route
+  if (!path || path === 'index' || path === '404') {
+    return DEFAULT_ROUTE;
+  }
+  // Check if valid route
+  if (VALID_ROUTES.includes(path)) {
+    return path;
+  }
+  return DEFAULT_ROUTE;
+}
+
+// Helper: navigate to a section using History API
+function navigateTo(section, pushState = true) {
+  if (pushState) {
+    const url = section === DEFAULT_ROUTE ? '/' : `/${section}.html`;
+    window.history.pushState({ section }, '', url);
+  }
+  if (activateSection) {
+    activateSection(section);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const navBar   = document.querySelector('nav.site-nav');
   const navLinks = navBar.querySelectorAll('a[data-section]');
@@ -23,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.cleanupStaffOrders();
       }
       
-      const resp = await fetch(`pages/${id}.html`);
+      const resp = await fetch(`/pages/${id}.html`);
       if (!resp.ok) throw new Error(`404 for ${id}.html`);
       content.innerHTML = await resp.text();
       
@@ -34,19 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Re-execute scripts in loaded content
       const scripts = content.querySelectorAll('script');
-      scripts.forEach(script => {
+      for (const script of scripts) {
         const newScript = document.createElement('script');
         newScript.textContent = script.textContent;
-        script.parentNode.replaceChild(newScript, script);
-      });
-      
-      // For inventory page, re-initialize after DOM is settled
-      if (id === 'inventory') {
-        if (typeof window.initInventory === 'function') {
-          setTimeout(() => {
-            window.initInventory();
-          }, 100);
-        }
+        // Remove original script and append new one to head for guaranteed execution
+        script.remove();
+        document.head.appendChild(newScript);
+        // Small delay to ensure script executes before continuing
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
       
       // For staff-orders page, ensure the initial load happens
@@ -78,26 +110,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function activateSection(id) {
+  // Set the global activateSection function
+  activateSection = function(id) {
     navLinks.forEach(l => l.classList.toggle('active', l.dataset.section === id));
     const show = id === 'cocktails';
     logo.classList.toggle('show', show);
     divider.classList.toggle('show', show);
     loadPage(id);
-  }
+  };
 
+  // Handle nav link clicks with History API
   navLinks.forEach(link =>
     link.addEventListener('click', e => {
       e.preventDefault();
       const section = link.dataset.section;
-      activateSection(section);
-      window.location.hash = section;
+      navigateTo(section, true);
     })
   );
 
-  window.addEventListener('hashchange', () => {
-    const id = window.location.hash.replace('#', '') || 'about';
-    activateSection(id);
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', (e) => {
+    const section = e.state?.section || getSectionFromPath();
+    activateSection(section);
   });
 
   function updateSticky() {
@@ -133,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadRecipes() {
       if (recipesCache) return recipesCache;
       try {
-        const resp = await fetch('assets/data/recipes.json');
+        const resp = await fetch('/assets/data/recipes.json');
         if (!resp.ok) throw new Error('Failed to load recipes.json');
         const data = await resp.json();
         // support new structure: { categories: {...}, recipes: { ... } }
@@ -373,15 +407,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Register Service Worker for background notifications on mobile
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('assets/js/sw.js').then(reg => {
+    navigator.serviceWorker.register('/assets/js/sw.js').then(reg => {
       console.log('Service Worker registered for notifications');
     }).catch(err => {
       console.log('Service Worker registration failed:', err);
     });
   }
 
-  // 🔰 Initial load based on hash (deep linking)
-  const first = window.location.hash.replace('#', '') || 'about';
+  // 🔰 Initial load based on URL path (deep linking)
+  const first = getSectionFromPath();
+  // Replace current state to ensure back button works correctly
+  const initialUrl = first === DEFAULT_ROUTE ? '/' : `/${first}.html`;
+  window.history.replaceState({ section: first }, '', initialUrl);
   activateSection(first);
 });
 
@@ -437,7 +474,7 @@ function requestNotificationPermission() {
         // Send a test notification
         new Notification('🥃🍸 Notifications Enabled!', {
           body: 'You will receive alerts when your order is ready.',
-          icon: 'assets/100px_StreeterDistilleryLogoW.png'
+          icon: '/assets/100px_StreeterDistilleryLogoW.png'
         });
       } else if (permission === 'denied') {
         console.log('❌ Notification permission denied by user');
@@ -467,10 +504,10 @@ function sendOrderNotification(order) {
 
   const notification = new Notification('🥃🍸 Order Ready!', {
     body: `${order.name}'s ${order.recipe} is ready for pickup!`,
-    icon: 'assets/100px_StreeterDistilleryLogoW.png',
+    icon: '/assets/100px_StreeterDistilleryLogoW.png',
     tag: `order-${order.id}`,
     requireInteraction: true,
-    badge: 'assets/100px_StreeterDistilleryLogoW.png'
+    badge: '/assets/100px_StreeterDistilleryLogoW.png'
   });
 
   console.log('✅ Notification displayed');
