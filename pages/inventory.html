@@ -9,6 +9,17 @@
         <button id="listViewBtn" class="view-btn" type="button" aria-label="List view">
           <span class="icon-list" aria-hidden="true"></span>
         </button>
+        <div class="sort-button-wrapper">
+          <button id="sortBtn" class="view-btn" type="button" aria-label="Sort options" title="Sort bottles">
+            <span class="icon-filter" aria-hidden="true"></span>
+          </button>
+          <div id="sortMenu" class="sort-dropdown-menu" style="display: none;">
+            <div class="sort-menu-item" data-sort="recent">Recent First</div>
+            <div class="sort-menu-item" data-sort="old">Oldest First</div>
+            <div class="sort-menu-item" data-sort="a-z">A-Z</div>
+            <div class="sort-menu-item" data-sort="z-a">Z-A</div>
+          </div>
+        </div>
       </div>
       <input 
         type="text" 
@@ -196,6 +207,7 @@
         <div class="form-actions">
           <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn">📷 Scan Barcode</button>
           <div class="form-actions-right">
+            <button type="button" id="deleteBottleBtn" class="delete-btn" style="display: none;">Delete</button>
             <button type="button" class="cancel-btn" id="bottleModalCancel">Cancel</button>
             <button type="submit" class="submit-btn">Save</button>
           </div>
@@ -300,7 +312,8 @@
   
   let allBottles = [];
   let isOwner = false;
-  let viewMode = 'grid';
+  let viewMode = window.innerWidth <= 600 ? 'list' : 'grid'; // Default to list on mobile
+  let sortOrder = 'recent'; // Track current sort order
   let currentFilters = {
     search: '',
     selectedTypes: new Set()
@@ -432,13 +445,6 @@
           e.preventDefault();
           e.stopPropagation();
           openEditModal(editBtn.dataset.id);
-          return;
-        }
-        const deleteBtn = e.target.closest('.delete-bottle-btn');
-        if (deleteBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          openDeleteModal(deleteBtn.dataset.id);
           return;
         }
       }
@@ -666,6 +672,43 @@
     }
     }
 
+    // Sort bottles based on current sort order
+    function sortBottles(bottles) {
+      const sorted = [...bottles]; // Create a copy to avoid mutating
+      switch (sortOrder) {
+        case 'a-z':
+          sorted.sort((a, b) => {
+            const aName = (a.brand + ' ' + (a.product_name || '')).toLowerCase();
+            const bName = (b.brand + ' ' + (b.product_name || '')).toLowerCase();
+            return aName.localeCompare(bName);
+          });
+          break;
+        case 'z-a':
+          sorted.sort((a, b) => {
+            const aName = (a.brand + ' ' + (a.product_name || '')).toLowerCase();
+            const bName = (b.brand + ' ' + (b.product_name || '')).toLowerCase();
+            return bName.localeCompare(aName);
+          });
+          break;
+        case 'old':
+          sorted.sort((a, b) => {
+            const aTime = new Date(a.created_at || 0).getTime();
+            const bTime = new Date(b.created_at || 0).getTime();
+            return aTime - bTime;
+          });
+          break;
+        case 'recent':
+        default:
+          sorted.sort((a, b) => {
+            const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+            const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+            return bTime - aTime;
+          });
+          break;
+      }
+      return sorted;
+    }
+
     // Expand selected types to handle hierarchy (e.g., whiskey → bourbon+rye+whiskey)
     function expandSelectedTypes(selected) {
       const expanded = new Set(selected);
@@ -683,7 +726,7 @@
     function getFilteredBottles() {
     const hasTypeFilters = currentFilters.selectedTypes && currentFilters.selectedTypes.size > 0;
     const expandedTypes = hasTypeFilters ? expandSelectedTypes(currentFilters.selectedTypes) : null;
-    return allBottles.filter(bottle => {
+    const filtered = allBottles.filter(bottle => {
       // Search filter (substring match on brand + product)
       if (currentFilters.search) {
         const searchLower = currentFilters.search.toLowerCase();
@@ -700,6 +743,8 @@
       
       return true;
       });
+    // Apply sorting to filtered results
+    return sortBottles(filtered);
     }
 
     // Render bottles to grid
@@ -744,7 +789,6 @@
           ${isOwner ? `
             <div class="bottle-actions">
               <button class="edit-bottle-btn" data-id="${bottle.id}">Edit</button>
-              <button class="delete-bottle-btn" data-id="${bottle.id}">Delete</button>
             </div>
           ` : ''}
         </article>
@@ -783,6 +827,12 @@
       document.getElementById('bottleId').value = '';
       document.getElementById('bottleCategory').value = '';
       
+      // Hide delete button in add mode
+      const deleteBottleBtn = document.getElementById('deleteBottleBtn');
+      if (deleteBottleBtn) {
+        deleteBottleBtn.style.display = 'none';
+      }
+      
       // Update category dropdown for blank spirit selection
       updateCategoryDropdown();
       
@@ -808,6 +858,12 @@
       
       editingBottleId = id;
       bottleModalTitle.textContent = 'Edit Bottle';
+      
+      // Show delete button in edit mode
+      const deleteBottleBtn = document.getElementById('deleteBottleBtn');
+      if (deleteBottleBtn) {
+        deleteBottleBtn.style.display = 'inline-block';
+      }
       
       document.getElementById('bottleId').value = bottle.id;
       document.getElementById('bottleBrand').value = bottle.brand || '';
@@ -1451,13 +1507,57 @@
     if (gridViewBtn && listViewBtn) {
       gridViewBtn.addEventListener('click', () => setViewMode('grid'));
       listViewBtn.addEventListener('click', () => setViewMode('list'));
+      
+      // Set initial active state based on default viewMode
+      gridViewBtn.classList.toggle('active', viewMode === 'grid');
+      listViewBtn.classList.toggle('active', viewMode === 'list');
+    }
+    
+    // Sort button and dropdown handler
+    const sortBtn = document.getElementById('sortBtn');
+    const sortMenu = document.getElementById('sortMenu');
+    const sortMenuItems = document.querySelectorAll('.sort-menu-item');
+    
+    if (sortBtn && sortMenu) {
+      sortBtn.addEventListener('click', () => {
+        sortMenu.style.display = sortMenu.style.display === 'none' ? 'block' : 'none';
+      });
+      
+      sortMenuItems.forEach(item => {
+        item.addEventListener('click', () => {
+          sortOrder = item.dataset.sort;
+          sortMenu.style.display = 'none';
+          renderBottles();
+        });
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!sortBtn.contains(e.target) && !sortMenu.contains(e.target)) {
+          sortMenu.style.display = 'none';
+        }
+      });
     }
     
     // Verify event listener was added
     console.log('🔵 Event listener added to button');
-    document.getElementById('bottleModalCancel').addEventListener('click', closeBottleModal);
+    const bottleModalCancel = document.getElementById('bottleModalCancel');
+    if (bottleModalCancel) {
+      bottleModalCancel.addEventListener('click', closeBottleModal);
+    } else {
+      console.error('❌ bottleModalCancel button not found');
+    }
     document.getElementById('bottleBaseSpirit').addEventListener('change', updateCategoryDropdown);
     bottleForm.addEventListener('submit', submitBottle);
+    
+    const deleteBottleBtn = document.getElementById('deleteBottleBtn');
+    if (deleteBottleBtn) {
+      deleteBottleBtn.addEventListener('click', () => {
+        const bottleId = editingBottleId;
+        closeBottleModal();
+        openDeleteModal(bottleId);
+      });
+    }
     
     document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
     deleteConfirmBtn.addEventListener('click', confirmDelete);
