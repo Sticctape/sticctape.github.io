@@ -296,7 +296,7 @@ body.is-landing main{opacity:0;animation:contentFade .8s ease-out 2s forwards;}
 .content-section.active{display:block}
 
 /* ─────────────────────────  COCKTAIL GRID  ─────────────────────── */
-.cocktail-wrap{max-width:min(1800px,50vw);margin:0 auto}
+.cocktail-wrap{max-width:min(1800px,90vw);margin:0 auto}
 .cocktail-grid{display:grid;gap:2rem;margin-top:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
 .cocktail-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:1rem;padding:1.25rem;text-align:center;backdrop-filter:blur(4px);cursor:pointer;transition:transform .2s ease;}
 .cocktail-card:hover{transform:scale(1.05);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);}
@@ -422,6 +422,22 @@ h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s ease;z-index:120;touch-action:none}
 .modal-overlay.active{opacity:1;visibility:visible}
 .modal{background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:2rem;max-width:500px;width:90%;backdrop-filter:blur(6px);animation:modalIn .25s ease forwards;text-align:center;touch-action:manipulation}
+
+/* Cocktails page: bring modals closer to viewport edges (match inventory feel) */
+.page-cocktails #modalOverlay .modal,
+.page-cocktails #loginOverlay .modal{
+  width:95vw;
+  max-width:700px;
+  padding:1.5rem;
+}
+
+@media (max-width:600px){
+  .page-cocktails #modalOverlay .modal,
+  .page-cocktails #loginOverlay .modal{
+    padding:1.25rem;
+  }
+}
+
 @keyframes modalIn{from{transform:scale(.9)}to{transform:scale(1)}}
 .modal img{width:80px;height:80px;object-fit:contain;filter:grayscale(100%);margin:0 auto 1rem;cursor:pointer;transition:width .3s ease,height .3s ease;position:relative;z-index:10;display:block}
 .modal img.expanded{width:100%;height:auto;margin-bottom:1rem;z-index:10}
