@@ -1599,3 +1599,11 @@ input:checked + .toggle-slider:before {
     width: 100%;
   }
 }
+
+/* ── Bar Assistant collection cards ── */
+.avail-badge{display:inline-block;background:rgba(80,200,120,.25);border:1px solid rgba(80,200,120,.5);color:#7ee8a2;font-size:.7rem;font-weight:600;letter-spacing:.04em;padding:.15rem .5rem;border-radius:999px;margin-bottom:.5rem;text-transform:uppercase;}
+.ingr-available{color:#7ee8a2;margin-right:.3rem;}
+.ingr-missing{color:rgba(255,255,255,.35);margin-right:.3rem;}
+.garnish-line{opacity:.7;font-style:italic;}
+.cocktail-meta{font-size:.8rem;opacity:.65;margin:0 0 .75rem;font-style:italic;}
+.ba-load-error{text-align:center;opacity:.5;padding:2rem;}
