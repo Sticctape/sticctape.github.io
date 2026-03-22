@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initCocktailModals() {
     const cards    = document.querySelectorAll('.cocktail-card');
     const overlay  = document.getElementById('modalOverlay');
-    if (!overlay || !cards.length) return;
+    if (!overlay) return; // cards may be 0 on dynamic-only pages (e.g. seasonal menu)
     let mImg       = document.getElementById('modalImg');
     const mTitle   = document.getElementById('modalTitle');
     const mIng     = document.getElementById('modalIngredients');
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // populate visible cards with JSON data (name, short ingredients, taste, image)
-    loadRecipes().then(recipes => {
+    // populate visible static cards with JSON data (only when cards exist on page)
+    if (cards.length) loadRecipes().then(recipes => {
       cards.forEach(card => {
         const id = card.dataset.id;
         const r = id && recipes && recipes[id] ? recipes[id] : null;
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    cards.forEach(card =>
+    if (cards.length) cards.forEach(card =>
       card.addEventListener('click', async () => {
         const isOwner = localStorage.getItem('isOwner') === 'true';
         const isStaff = localStorage.getItem('isStaff') === 'true';
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
       })
-    );
+    ); // end cards.forEach
 
     // Toggle image expansion on click
     // Clone the image element to reset any stacked listeners from previous page loads
