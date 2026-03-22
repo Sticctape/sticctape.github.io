@@ -442,7 +442,7 @@ h2{font-size:1.75rem;font-weight:600;margin-bottom:.75rem}
 .modal img{width:80px;height:80px;object-fit:contain;filter:grayscale(100%);margin:0 auto 1rem;cursor:pointer;transition:width .3s ease,height .3s ease;position:relative;z-index:10;display:block}
 .modal img.expanded{width:100%;height:auto;margin-bottom:1rem;z-index:10}
 .modal h3{font-size:1.5rem;font-weight:600;margin-bottom:1rem}
-.modal ul{list-style:none;line-height:1.6;font-size:.95rem;margin-bottom:1rem;text-align:left;padding:0}
+.modal ul{list-style:none;line-height:1.6;font-size:.95rem;margin-bottom:1rem;text-align:center;padding:0}
 .close-btn{border:1px solid rgba(255,255,255,.2);border-radius:9999px;background:transparent;color:#fff;cursor:pointer;transition:opacity .2s ease;padding:.4rem 1.2rem;font-size:.85rem}
 .close-btn:hover{opacity:.75}
 .modal .close-btn{display:block;margin:1rem auto 0}
