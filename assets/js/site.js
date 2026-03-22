@@ -554,12 +554,14 @@ function renderCartItems() {
       
       const handleConfirm = async () => {
         try {
-          // Delete order from CF container
+          // Delete order from CF container - send token so worker can authorize
           console.log('Attempting to delete order:', orderId);
+          const deleteToken = localStorage.getItem('customerToken') || localStorage.getItem('staffToken') || localStorage.getItem('ownerToken');
           const response = await fetch(`https://streeter.cc/api/orders/${orderId}`, {
             method: 'DELETE',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              ...(deleteToken ? { 'X-Staff-Token': deleteToken } : {})
             }
           });
           
