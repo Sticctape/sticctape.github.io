@@ -2,6 +2,17 @@
   site.js – site-wide behaviors (multi-page)
   ------------------------------------------------------------------ */
 
+// Escape HTML special characters to prevent XSS when inserting user-controlled
+// data into innerHTML. Use this any time server/localStorage data hits innerHTML.
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Global cooldown tracking for order submissions
 let lastOrderTime = 0;
 const ORDER_COOLDOWN_MS = 60000; // 60 seconds
@@ -142,13 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   : (recipe && recipe.clean) || card.dataset.clean || '';
         mIng.innerHTML = ingredientData
                             .split('\n')
-                            .map(t => `<li>${t.trim()}</li>`)
+                            .map(t => `<li>${escHtml(t.trim())}</li>`)
                             .join('');
 
         // Instructions: members see the recipe.instructions from JSON; non-members get a login prompt
         if (isPrivileged) {
           const instr = (recipe && recipe.instructions) || '';
-          mInstr.innerHTML = instr
+          mInstr.innerHTML = escHtml(instr)
                                 .replace(/(?:\r\n|\r|\n)/g, '<br>');
         } else {
           mInstr.innerHTML = '<p style="font-style: italic; color: #aaa;">Contact me to view detailed measurements and instructions.</p>';
@@ -515,12 +526,12 @@ function renderCartItems() {
   cartFlyoutBody.innerHTML = orders.map((order, idx) => `
     <div class="cart-item">
       <div class="cart-item-info">
-        <p class="recipe">${order.recipe}</p>
-        <p class="name">For: ${order.name}</p>
-        <p class="order-id" style="font-size: 0.8rem; opacity: 0.6; margin: 4px 0 0;">ID: ${order.id}</p>
-        <p class="order-status" style="font-size: 0.85rem; color: #e74; margin: 4px 0 0; font-weight: 600;">${order.status || 'Received'}</p>
+        <p class="recipe">${escHtml(order.recipe)}</p>
+        <p class="name">For: ${escHtml(order.name)}</p>
+        <p class="order-id" style="font-size: 0.8rem; opacity: 0.6; margin: 4px 0 0;">ID: ${escHtml(order.id)}</p>
+        <p class="order-status" style="font-size: 0.85rem; color: #e74; margin: 4px 0 0; font-weight: 600;">${escHtml(order.status || 'Received')}</p>
       </div>
-      <button class="cart-item-remove" data-order-id="${order.id}" type="button">Remove</button>
+      <button class="cart-item-remove" data-order-id="${escHtml(order.id)}" type="button">Remove</button>
     </div>
   `).join('');
   // add remove button handlers

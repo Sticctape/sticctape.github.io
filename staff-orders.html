@@ -115,6 +115,16 @@
     </div>
 
     <script>
+    // Escape HTML special characters to prevent XSS when inserting server data into innerHTML.
+    function escHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // Staff orders dashboard logic
     var staffAutoRefresh = false;
     var staffRefreshInterval = null;
@@ -207,11 +217,11 @@
       }
       
       tbody.innerHTML = filteredOrders.map(order => {
-        const statusClass = `status-${order.status.toLowerCase().replace(/\s+/g, '-')}`;
+        const statusClass = `status-${escHtml(order.status.toLowerCase().replace(/\s+/g, '-'))}`;
         const createdAt = new Date(order.createdAt);
-        const timeStr = createdAt.toLocaleString('en-US', { 
-          month: '2-digit', 
-          day: '2-digit', 
+        const timeStr = createdAt.toLocaleString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
@@ -219,22 +229,22 @@
           hour12: true,
           timeZone: 'America/New_York'
         });
-        
+
         return `
           <tr>
-            <td><strong>${order.orderId}</strong></td>
-            <td>${order.name}</td>
-            <td>${order.drink}</td>
-            <td>${order.qty}</td>
-            <td>${order.notes || '—'}</td>
-            <td><span class="order-status-badge ${statusClass}">${order.status}</span></td>
+            <td><strong>${escHtml(order.orderId)}</strong></td>
+            <td>${escHtml(order.name)}</td>
+            <td>${escHtml(order.drink)}</td>
+            <td>${escHtml(String(order.qty))}</td>
+            <td>${order.notes ? escHtml(order.notes) : '—'}</td>
+            <td><span class="order-status-badge ${statusClass}">${escHtml(order.status)}</span></td>
             <td style="font-size: 0.85rem;">${timeStr}</td>
             <td>
               <div class="status-buttons">
-                ${order.status !== 'Making' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Making">Making</button>` : ''}
-                ${order.status !== 'Ready' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Ready">Ready</button>` : ''}
-                ${order.status !== 'Picked Up' ? `<button class="status-btn" data-order-id="${order.orderId}" data-status="Picked Up">Picked Up</button>` : ''}
-                ${order.status === 'Picked Up' ? `<button class="delete-btn" data-order-id="${order.orderId}">Delete</button>` : ''}
+                ${order.status !== 'Making' ? `<button class="status-btn" data-order-id="${escHtml(order.orderId)}" data-status="Making">Making</button>` : ''}
+                ${order.status !== 'Ready' ? `<button class="status-btn" data-order-id="${escHtml(order.orderId)}" data-status="Ready">Ready</button>` : ''}
+                ${order.status !== 'Picked Up' ? `<button class="status-btn" data-order-id="${escHtml(order.orderId)}" data-status="Picked Up">Picked Up</button>` : ''}
+                ${order.status === 'Picked Up' ? `<button class="delete-btn" data-order-id="${escHtml(order.orderId)}">Delete</button>` : ''}
               </div>
             </td>
           </tr>
