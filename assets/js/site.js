@@ -22,7 +22,7 @@ let statusPollingInterval = null;
 let previousOrderStatuses = {};
 
 // Valid routes for active-nav highlighting
-const VALID_ROUTES = ['about', 'contact', 'cocktails', 'inventory', 'staff-orders'];
+const VALID_ROUTES = ['about', 'contact', 'cocktails', 'seasonal-menu', 'inventory', 'staff-orders'];
 const DEFAULT_ROUTE = 'about';
 
 // Helper: get current section ID from pathname (for active nav)
@@ -330,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize cocktails modal behavior only if present on this page
   initCocktailModals();
   initBarCollections();
+  initSeasonalMenu();
 
   // Request notification permission for order ready alerts
   requestNotificationPermission();
@@ -896,16 +897,75 @@ document.querySelectorAll('nav.site-nav ul a')
   } catch (e) { /* ignore */ }
 
 // ---------------------------------------------------------------------------
-// Bar Assistant collection integration
+// Shared BA cocktail modal opener — used by initBarCollections & initSeasonalMenu
+// ---------------------------------------------------------------------------
+function openBarCocktailModal(cocktail) {
+  const overlay = document.getElementById('modalOverlay');
+  if (!overlay) return;
+  const mImg    = document.getElementById('modalImg');
+  const mTitle  = document.getElementById('modalTitle');
+  const mIng    = document.getElementById('modalIngredients');
+  const mInstr  = document.getElementById('modalInstructions');
+  const modalEl = overlay.querySelector('.modal');
+
+  const isOwner      = localStorage.getItem('isOwner')    === 'true';
+  const isStaff      = localStorage.getItem('isStaff')    === 'true';
+  const isPrivileged = isOwner || isStaff;
+  const isCustomer   = localStorage.getItem('isCustomer') === 'true';
+
+  if (mImg)   mImg.src = cocktail.image_url || '';
+  if (mTitle) mTitle.textContent = cocktail.name || '';
+
+  if (mIng) {
+    if (isPrivileged) {
+      mIng.innerHTML = (cocktail.ingredients || []).map(i => {
+        const amtStr = i.amount != null
+          ? `${i.amount}${i.amount_max != null ? '–' + i.amount_max : ''} ${i.units} `
+          : '';
+        const opt = i.optional ? ' <em>(optional)</em>' : '';
+        return `<li>${amtStr}${i.name}${opt}</li>`;
+      }).join('');
+      if (cocktail.garnish) {
+        mIng.innerHTML += `<li class="garnish-line"><em>Garnish: ${cocktail.garnish}</em></li>`;
+      }
+    } else {
+      mIng.innerHTML = (cocktail.ingredients || []).map(i => `<li>${i.name}</li>`).join('');
+    }
+  }
+
+  if (mInstr) {
+    if (isPrivileged) {
+      const meta = [];
+      if (cocktail.glass)       meta.push(`Glass: ${cocktail.glass}`);
+      if (cocktail.method)      meta.push(`Method: ${cocktail.method}`);
+      if (cocktail.abv != null) meta.push(`ABV: ~${cocktail.abv}%`);
+      const metaHtml = meta.length ? `<p class="cocktail-meta">${meta.join(' · ')}</p>` : '';
+      mInstr.innerHTML = cocktail.instructions
+        ? metaHtml + cocktail.instructions.replace(/\n/g, '<br>')
+        : metaHtml;
+    } else {
+      mInstr.innerHTML = '<p style="font-style:italic;color:#aaa;">Contact me to view detailed measurements and instructions.</p>';
+    }
+  }
+
+  const orderBtn = document.getElementById('orderBtn');
+  if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isPrivileged));
+  if (modalEl) modalEl.classList.remove('show-order');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// ---------------------------------------------------------------------------
+// Bar Assistant collection integration (cocktails page)
 // Fetches targeted collections from /api/bar-cocktails (CF Worker proxy)
-// and renders them into #bar-collections on the cocktails page.
+// and renders them into #bar-collections.
 // ---------------------------------------------------------------------------
 async function initBarCollections() {
   const container = document.getElementById('bar-collections');
   if (!container) return;
 
   const CACHE_KEY = 'barCollectionsCache';
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  const CACHE_TTL = 5 * 60 * 1000;
 
   let data = null;
   try {
@@ -914,7 +974,7 @@ async function initBarCollections() {
       const { ts, payload } = JSON.parse(cached);
       if (Date.now() - ts < CACHE_TTL) data = payload;
     }
-  } catch { /* ignore bad cache */ }
+  } catch { /* ignore */ }
 
   if (!data) {
     try {
@@ -932,81 +992,11 @@ async function initBarCollections() {
   const collections = data.collections || [];
   if (!collections.length) { container.innerHTML = ''; return; }
 
-  // Reuse the existing cocktail modal elements
-  const overlay  = document.getElementById('modalOverlay');
-  const mImg     = document.getElementById('modalImg');
-  const mTitle   = document.getElementById('modalTitle');
-  const mIng     = document.getElementById('modalIngredients');
-  const mInstr   = document.getElementById('modalInstructions');
-  const modalEl  = overlay ? overlay.querySelector('.modal') : null;
-
-  function openBarCocktailModal(cocktail) {
-    if (!overlay) return;
-    const isOwner    = localStorage.getItem('isOwner')    === 'true';
-    const isStaff    = localStorage.getItem('isStaff')    === 'true';
-    const isPrivileged = isOwner || isStaff;
-    const isCustomer = localStorage.getItem('isCustomer') === 'true';
-
-    if (mImg)   mImg.src = cocktail.image_url || '';
-    if (mTitle) mTitle.textContent = cocktail.name || '';
-
-    // Ingredients list
-    if (mIng) {
-      if (isPrivileged) {
-        mIng.innerHTML = (cocktail.ingredients || []).map(i => {
-          const dot = i.in_shelf
-            ? '<span class="ingr-available" title="In stock">●</span>'
-            : '<span class="ingr-missing"   title="Not in stock">○</span>';
-          const amtStr = i.amount != null
-            ? `${i.amount}${i.amount_max != null ? '–' + i.amount_max : ''} ${i.units} `
-            : '';
-          const opt = i.optional ? ' <em>(optional)</em>' : '';
-          return `<li>${dot} ${amtStr}${i.name}${opt}</li>`;
-        }).join('');
-        if (cocktail.garnish) {
-          mIng.innerHTML += `<li class="garnish-line"><em>Garnish: ${cocktail.garnish}</em></li>`;
-        }
-      } else {
-        mIng.innerHTML = (cocktail.ingredients || []).map(i => `<li>${i.name}</li>`).join('');
-      }
-    }
-
-    // Instructions + meta
-    if (mInstr) {
-      if (isPrivileged) {
-        const meta = [];
-        if (cocktail.glass)           meta.push(`Glass: ${cocktail.glass}`);
-        if (cocktail.method)          meta.push(`Method: ${cocktail.method}`);
-        if (cocktail.abv != null)     meta.push(`ABV: ~${cocktail.abv}%`);
-        const metaHtml = meta.length
-          ? `<p class="cocktail-meta">${meta.join(' · ')}</p>`
-          : '';
-        mInstr.innerHTML = cocktail.instructions
-          ? metaHtml + cocktail.instructions.replace(/\n/g, '<br>')
-          : metaHtml;
-      } else {
-        mInstr.innerHTML = '<p style="font-style:italic;color:#aaa;">Contact me to view detailed measurements and instructions.</p>';
-      }
-    }
-
-    // Order button — same rules as static cocktails
-    const orderBtn = document.getElementById('orderBtn');
-    if (orderBtn) orderBtn.classList.toggle('is-hidden', !(isCustomer || isPrivileged));
-
-    // Reset any leftover order panel state
-    if (modalEl) modalEl.classList.remove('show-order');
-
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  // Render each collection as a section
   container.innerHTML = '';
   for (const col of collections) {
     if (!col.cocktails || !col.cocktails.length) continue;
 
     const colId = col.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
     const wrap = document.createElement('div');
     wrap.className = 'cocktail-wrap ba-collection';
 
@@ -1025,16 +1015,12 @@ async function initBarCollections() {
       card.dataset.id   = cocktail.slug;
       card.dataset.baId = cocktail.id;
 
-      const badge = cocktail.in_bar_shelf
-        ? '<span class="avail-badge">Available</span>'
-        : '';
       const taste = cocktail.tags && cocktail.tags.length
         ? `<p class="taste">${cocktail.tags.join(' \u2022 ')}</p>`
         : '';
       const shortIngr = (cocktail.ingredients || []).map(i => i.name).join(' | ');
 
       card.innerHTML = `
-        ${badge}
         <h3>${cocktail.name}</h3>
         <p class="ingredients">${shortIngr}</p>
         ${taste}
@@ -1046,5 +1032,72 @@ async function initBarCollections() {
 
     wrap.appendChild(grid);
     container.appendChild(wrap);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Seasonal Menu integration
+// Fetches a single named collection from /api/seasonal-menu (CF Worker proxy)
+// and renders it as a flat grid into #seasonal-menu-heading + #seasonal-menu-grid.
+// ---------------------------------------------------------------------------
+async function initSeasonalMenu() {
+  const heading = document.getElementById('seasonal-menu-heading');
+  const grid    = document.getElementById('seasonal-menu-grid');
+  if (!heading || !grid) return;
+
+  const CACHE_KEY = 'seasonalMenuCache';
+  const CACHE_TTL = 5 * 60 * 1000;
+
+  let data = null;
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { ts, payload } = JSON.parse(cached);
+      if (Date.now() - ts < CACHE_TTL) data = payload;
+    }
+  } catch { /* ignore */ }
+
+  if (!data) {
+    try {
+      const resp = await fetch('https://streeter.cc/api/seasonal-menu');
+      if (!resp.ok) throw new Error(`${resp.status}`);
+      data = await resp.json();
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), payload: data })); } catch { /* storage full */ }
+    } catch (err) {
+      console.warn('Seasonal menu unavailable:', err.message);
+      heading.textContent = 'Seasonal Menu';
+      grid.innerHTML = '<p class="ba-load-error">Menu unavailable — check back soon.</p>';
+      return;
+    }
+  }
+
+  heading.textContent = data.collection_name || 'Seasonal Menu';
+
+  const cocktails = data.cocktails || [];
+  if (!cocktails.length) {
+    grid.innerHTML = '<p class="ba-load-error">No cocktails on the menu right now.</p>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  for (const cocktail of cocktails) {
+    const card = document.createElement('article');
+    card.className = 'cocktail-card ba-card';
+    card.dataset.id   = cocktail.slug;
+    card.dataset.baId = cocktail.id;
+
+    const taste = cocktail.tags && cocktail.tags.length
+      ? `<p class="taste">${cocktail.tags.join(' \u2022 ')}</p>`
+      : '';
+    const shortIngr = (cocktail.ingredients || []).map(i => i.name).join(' | ');
+
+    card.innerHTML = `
+      <h3>${cocktail.name}</h3>
+      <p class="ingredients">${shortIngr}</p>
+      ${taste}
+    `;
+
+    card.addEventListener('click', () => openBarCocktailModal(cocktail));
+    grid.appendChild(card);
   }
 }
